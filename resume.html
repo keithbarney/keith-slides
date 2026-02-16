@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keith Barney — Design Systems Lead</title>
+  <style>
+    /* ===== FONTS ===== */
+    @font-face {
+      font-family: 'Test American Grotesk';
+      src: url('src/assets/fonts/TestAmericanGrotesk-Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Test American Grotesk';
+      src: url('src/assets/fonts/TestAmericanGrotesk-Regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Test American Grotesk';
+      src: url('src/assets/fonts/TestAmericanGrotesk-Medium.otf') format('opentype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Test American Grotesk';
+      src: url('src/assets/fonts/TestAmericanGrotesk-Bold.otf') format('opentype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    /* ===== BASE TOKENS ===== */
+    :root {
+      /* Colors - Primitives */
+      --keith-color-white: #FFFFFF;
+      --keith-color-black: #000000;
+      --keith-color-gray-50: #F9FAFB;
+      --keith-color-gray-100: #F3F4F6;
+      --keith-color-gray-200: #E5E7EB;
+      --keith-color-gray-300: #D1D5DB;
+      --keith-color-gray-400: #9CA3AF;
+      --keith-color-gray-500: #6B7280;
+      --keith-color-gray-600: #4B5563;
+      --keith-color-gray-700: #374151;
+      --keith-color-gray-800: #1F2937;
+      --keith-color-gray-900: #111827;
+      --keith-color-red-500: #D64541;
+      --keith-color-red-600: #B83B38;
+      --keith-color-blue-500: #005FCC;
+
+      /* Gap Scale */
+      --keith-gap-none: 0;
+      --keith-gap-xs: 0.25rem;
+      --keith-gap-sm: 0.5rem;
+      --keith-gap-md: 0.75rem;
+      --keith-gap-lg: 1rem;
+      --keith-gap-xl: 1.5rem;
+      --keith-gap-2xl: 2rem;
+      --keith-gap-3xl: 2.5rem;
+      --keith-gap-4xl: 3rem;
+      --keith-gap-5xl: 4rem;
+
+      /* Padding Scale */
+      --keith-padding-xs: 0.25rem;
+      --keith-padding-sm: 0.5rem;
+      --keith-padding-md: 0.75rem;
+      --keith-padding-lg: 1rem;
+      --keith-padding-xl: 1.5rem;
+      --keith-padding-2xl: 2rem;
+
+      /* Font Families */
+      --keith-font-family-primary: "Test American Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+      --keith-font-family-mono: "Test American Grotesk", ui-monospace, monospace;
+
+      /* Font Sizes */
+      --keith-font-size-xs: 0.625rem;
+      --keith-font-size-sm: 0.75rem;
+      --keith-font-size-md: 0.875rem;
+      --keith-font-size-lg: 1rem;
+      --keith-font-size-xl: 1.125rem;
+      --keith-font-size-2xl: 1.25rem;
+      --keith-font-size-3xl: 1.5rem;
+      --keith-font-size-4xl: 2rem;
+
+      /* Font Weights */
+      --keith-font-weight-regular: 400;
+      --keith-font-weight-medium: 500;
+      --keith-font-weight-bold: 700;
+
+      /* Line Heights */
+      --keith-line-height-tight: 1.2;
+      --keith-line-height-snug: 1.375;
+      --keith-line-height-normal: 1.5;
+      --keith-line-height-relaxed: 1.625;
+
+      /* Letter Spacing */
+      --keith-letter-spacing-tight: -0.025em;
+      --keith-letter-spacing-normal: 0;
+      --keith-letter-spacing-wide: 0.025em;
+      --keith-letter-spacing-wider: 0.05em;
+
+      /* Layout */
+      --keith-grid-columns: 12;
+      --keith-grid-gutter: var(--keith-gap-xl);
+      --keith-measure: 65ch;
+
+      /* Border */
+      --keith-border-width-md: 2px;
+
+      /* ===== UI ALIAS TOKENS ===== */
+      --keith-ui-bg-default: var(--keith-color-white);
+      --keith-ui-bg-weak: var(--keith-color-gray-100);
+      --keith-ui-text-default: var(--keith-color-gray-700);
+      --keith-ui-text-strong: var(--keith-color-black);
+      --keith-ui-text-muted: var(--keith-color-gray-500);
+      --keith-ui-border-default: var(--keith-color-gray-200);
+      --keith-ui-border-strong: var(--keith-color-black);
+      --keith-ui-action-primary: var(--keith-color-red-500);
+      --keith-ui-action-primary-hover: var(--keith-color-red-600);
+      --keith-ui-focus-ring: var(--keith-color-blue-500);
+
+      /* ===== TYPOGRAPHY ALIAS TOKENS ===== */
+      /* Display */
+      --keith-type-display-font-family: var(--keith-font-family-primary);
+      --keith-type-display-font-size: var(--keith-font-size-4xl);
+      --keith-type-display-font-weight: var(--keith-font-weight-bold);
+      --keith-type-display-line-height: var(--keith-line-height-tight);
+      --keith-type-display-letter-spacing: var(--keith-letter-spacing-tight);
+
+      /* Heading 3 */
+      --keith-type-h3-font-family: var(--keith-font-family-primary);
+      --keith-type-h3-font-size: var(--keith-font-size-xl);
+      --keith-type-h3-font-weight: var(--keith-font-weight-bold);
+      --keith-type-h3-line-height: var(--keith-line-height-snug);
+
+      /* Body Large */
+      --keith-type-body-lg-font-family: var(--keith-font-family-primary);
+      --keith-type-body-lg-font-size: var(--keith-font-size-lg);
+      --keith-type-body-lg-font-weight: var(--keith-font-weight-medium);
+      --keith-type-body-lg-line-height: var(--keith-line-height-normal);
+
+      /* Body */
+      --keith-type-body-font-family: var(--keith-font-family-primary);
+      --keith-type-body-font-size: var(--keith-font-size-md);
+      --keith-type-body-font-weight: var(--keith-font-weight-regular);
+      --keith-type-body-line-height: var(--keith-line-height-relaxed);
+
+      /* Label */
+      --keith-type-label-font-family: var(--keith-font-family-mono);
+      --keith-type-label-font-size: var(--keith-font-size-md);
+      --keith-type-label-font-weight: var(--keith-font-weight-regular);
+      --keith-type-label-line-height: var(--keith-line-height-normal);
+
+      /* Label Small */
+      --keith-type-label-sm-font-family: var(--keith-font-family-mono);
+      --keith-type-label-sm-font-size: var(--keith-font-size-sm);
+      --keith-type-label-sm-font-weight: var(--keith-font-weight-regular);
+      --keith-type-label-sm-line-height: var(--keith-line-height-normal);
+
+      /* Overline */
+      --keith-type-overline-font-family: var(--keith-font-family-mono);
+      --keith-type-overline-font-size: var(--keith-font-size-sm);
+      --keith-type-overline-font-weight: var(--keith-font-weight-bold);
+      --keith-type-overline-letter-spacing: var(--keith-letter-spacing-wider);
+    }
+
+    [data-theme="dark"] {
+      --keith-ui-bg-default: var(--keith-color-gray-900);
+      --keith-ui-text-default: var(--keith-color-gray-300);
+      --keith-ui-text-strong: var(--keith-color-gray-50);
+      --keith-ui-text-muted: var(--keith-color-gray-500);
+      --keith-ui-border-default: var(--keith-color-gray-700);
+      --keith-ui-border-strong: var(--keith-color-gray-50);
+    }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ===== BASE ===== */
+    html {
+      font-size: 100%;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--keith-type-body-font-family);
+      font-weight: var(--keith-type-body-font-weight);
+      line-height: var(--keith-type-body-line-height);
+      color: var(--keith-ui-text-default);
+      background-color: var(--keith-ui-bg-weak);
+    }
+
+    /* ===== ACCESSIBILITY ===== */
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: var(--keith-padding-lg);
+      padding: var(--keith-padding-sm) var(--keith-padding-lg);
+      background: var(--keith-ui-text-strong);
+      color: var(--keith-ui-bg-default);
+      font-family: var(--keith-type-label-sm-font-family);
+      font-size: var(--keith-type-label-sm-font-size);
+      text-decoration: none;
+      z-index: 1000;
+    }
+
+    .skip-link:focus {
+      top: 0;
+      outline: var(--keith-border-width-md) solid var(--keith-ui-focus-ring);
+      outline-offset: 2px;
+    }
+
+    :focus-visible {
+      outline: var(--keith-border-width-md) solid var(--keith-ui-focus-ring);
+      outline-offset: 2px;
+    }
+
+    :focus:not(:focus-visible) {
+      outline: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ===== LAYOUT ===== */
+    .resume {
+      display: grid;
+      grid-template-columns: repeat(var(--keith-grid-columns), 1fr);
+      column-gap: var(--keith-grid-gutter);
+      padding: var(--keith-padding-xl);
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(var(--keith-grid-columns), 1fr);
+      column-gap: var(--keith-grid-gutter);
+      align-items: baseline;
+      background-color: var(--keith-color-gray-200);
+      margin: calc(-1 * var(--keith-padding-xl));
+      margin-bottom: var(--keith-gap-5xl);
+      padding: var(--keith-padding-xl);
+      padding-bottom: var(--keith-gap-5xl);
+    }
+
+    .name {
+      grid-column: span 3;
+      font-family: var(--keith-type-display-font-family);
+      font-size: var(--keith-type-display-font-size);
+      font-weight: var(--keith-type-display-font-weight);
+      line-height: var(--keith-type-display-line-height);
+      letter-spacing: var(--keith-type-display-letter-spacing);
+      color: var(--keith-ui-text-strong);
+    }
+
+    .header-content {
+      grid-column: span 9;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      column-gap: var(--keith-grid-gutter);
+      align-items: baseline;
+    }
+
+    .header-content > * {
+      grid-column: span 3;
+    }
+
+    .title {
+      font-family: var(--keith-type-body-font-family);
+      font-size: var(--keith-type-body-font-size);
+      font-weight: var(--keith-type-body-font-weight);
+      line-height: var(--keith-type-body-line-height);
+      color: var(--keith-ui-text-muted);
+    }
+
+    .contact-item {
+      font-family: var(--keith-type-body-font-family);
+      font-size: var(--keith-type-body-font-size);
+      color: var(--keith-ui-text-muted);
+      line-height: var(--keith-type-body-line-height);
+      font-style: normal;
+    }
+
+    .contact-item a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .contact-item a:hover,
+    .contact-item a:focus {
+      color: var(--keith-ui-action-primary);
+    }
+
+    @media (max-width: 768px) {
+      .name {
+        grid-column: 1 / -1;
+      }
+      .header-content {
+        grid-column: 1 / -1;
+      }
+      .header-content > * {
+        grid-column: span 9;
+      }
+    }
+
+    /* ===== TWO-COLUMN SECTIONS ===== */
+    .section {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(var(--keith-grid-columns), 1fr);
+      column-gap: var(--keith-grid-gutter);
+      margin-bottom: var(--keith-gap-5xl);
+    }
+
+    .section-label {
+      grid-column: span 3;
+      font-family: var(--keith-type-label-font-family);
+      font-size: var(--keith-type-label-font-size);
+      font-weight: var(--keith-type-label-font-weight);
+      line-height: var(--keith-type-label-line-height);
+      color: var(--keith-ui-text-muted);
+      padding-top: var(--keith-gap-xs);
+    }
+
+    .section-content {
+      grid-column: span 9;
+      display: flex;
+      flex-direction: column;
+      gap: var(--keith-gap-2xl);
+    }
+
+    .section-content--columns {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      column-gap: var(--keith-grid-gutter);
+    }
+
+    .section-content--columns .job {
+      grid-column: span 3;
+    }
+
+    @media (max-width: 1024px) {
+      .section-content--columns .job {
+        grid-column: span 6;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .section-content--columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .section-label {
+        grid-column: 1 / -1;
+      }
+      .section-content {
+        grid-column: 1 / -1;
+      }
+    }
+
+    /* ===== JOBS ===== */
+    .job {
+      display: flex;
+      flex-direction: column;
+      gap: var(--keith-gap-xs);
+    }
+
+    .job-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--keith-gap-none);
+    }
+
+    .job-company {
+      font-family: var(--keith-type-h3-font-family);
+      font-size: var(--keith-type-h3-font-size);
+      font-weight: var(--keith-type-h3-font-weight);
+      line-height: var(--keith-type-h3-line-height);
+      color: var(--keith-ui-text-strong);
+    }
+
+    .job-title {
+      font-family: var(--keith-type-body-font-family);
+      font-size: var(--keith-type-body-font-size);
+      font-weight: var(--keith-type-body-font-weight);
+      line-height: var(--keith-type-body-line-height);
+      color: var(--keith-ui-text-muted);
+    }
+
+    .job-meta {
+      font-family: var(--keith-type-body-font-family);
+      font-size: var(--keith-type-body-font-size);
+      font-weight: var(--keith-type-body-font-weight);
+      line-height: var(--keith-type-body-line-height);
+      color: var(--keith-ui-text-muted);
+    }
+
+    .job-description {
+      font-family: var(--keith-type-body-font-family);
+      font-size: var(--keith-type-body-font-size);
+      font-weight: var(--keith-type-body-font-weight);
+      line-height: var(--keith-type-body-line-height);
+      color: var(--keith-ui-text-default);
+      margin-top: var(--keith-gap-sm);
+      max-width: var(--keith-measure);
+    }
+
+    /* ===== EDUCATION ===== */
+    .education-name {
+      font-family: var(--keith-type-h3-font-family);
+      font-size: var(--keith-type-h3-font-size);
+      font-weight: var(--keith-type-h3-font-weight);
+      line-height: var(--keith-type-h3-line-height);
+      color: var(--keith-ui-text-strong);
+    }
+
+    .education-degree {
+      font-family: var(--keith-type-label-sm-font-family);
+      font-size: var(--keith-type-label-sm-font-size);
+      font-weight: var(--keith-type-label-sm-font-weight);
+      line-height: var(--keith-type-label-sm-line-height);
+      color: var(--keith-ui-text-muted);
+      margin-top: var(--keith-gap-xs);
+    }
+
+    .education-meta {
+      font-family: var(--keith-type-body-font-family);
+      font-size: var(--keith-type-body-font-size);
+      color: var(--keith-ui-text-muted);
+    }
+
+    /* ===== SKILLS GRID ===== */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      column-gap: var(--keith-grid-gutter);
+      font-family: var(--keith-type-body-font-family);
+      font-size: var(--keith-type-body-font-size);
+      color: var(--keith-ui-text-default);
+    }
+
+    .skills-grid > * {
+      grid-column: span 3;
+    }
+
+    @media (max-width: 768px) {
+      .skills-grid > * {
+        grid-column: span 9;
+      }
+    }
+
+    .skills-section {
+      margin-bottom: var(--keith-gap-xl);
+    }
+
+    .skills-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .skills-section-label {
+      font-family: var(--keith-type-overline-font-family);
+      font-size: var(--keith-type-overline-font-size);
+      font-weight: var(--keith-type-overline-font-weight);
+      letter-spacing: var(--keith-type-overline-letter-spacing);
+      color: var(--keith-ui-text-strong);
+      text-transform: uppercase;
+      margin-bottom: var(--keith-gap-md);
+    }
+
+    /* ===== PRINT ===== */
+    @media print {
+      body {
+        background: white;
+      }
+
+      .resume {
+        max-width: 100%;
+        padding: 0.5in;
+      }
+
+      .skip-link {
+        display: none;
+      }
+
+      .section {
+        break-inside: avoid;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <main id="main-content" class="resume" role="main">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="name">Keith Barney</h1>
+      <div class="header-content">
+        <p class="title">Design Systems Lead</p>
+        <address class="contact-item"><a href="https://keithbarney.design">keithbarney.design</a></address>
+        <address class="contact-item"><a href="mailto:keithbarneydesign@gmail.com">keithbarneydesign@gmail.com</a></address>
+      </div>
+    </header>
+
+    <!-- Experience -->
+    <section class="section" aria-labelledby="experience-heading">
+      <h2 id="experience-heading" class="section-label">Experience</h2>
+      <div class="section-content section-content--columns">
+        <article class="job">
+          <div class="job-header">
+            <span class="job-company">Experian</span>
+            <span class="job-title">Design Systems Lead</span>
+            <p class="job-meta">May 2021 – Present</p>
+          </div>
+          <p class="job-description">Founded and led Experian's first design system (Atlas), establishing centralized component libraries across iOS, Android, and Web. Built token architecture, led cross-platform component consolidation, and created Atlas Audit—an internal tool for visualizing UI system adoption. Drove governance processes and adoption strategy that resulted in company-wide design system mandate.</p>
+        </article>
+
+        <article class="job">
+          <div class="job-header">
+            <span class="job-company">Applied Systems</span>
+            <span class="job-title">Lead UX Designer</span>
+            <p class="job-meta">Sep 2020 – May 2021</p>
+          </div>
+          <p class="job-description">Led UX design initiatives for insurance technology platform, driving user-centered design practices across product teams.</p>
+        </article>
+
+        <article class="job">
+          <div class="job-header">
+            <span class="job-company">Paciolan</span>
+            <span class="job-title">Lead Designer / DS Manager</span>
+            <p class="job-meta">Apr 2019 – Sep 2020</p>
+          </div>
+          <p class="job-description">Promoted from Senior Product Designer to Lead Designer for a team of six. Created a cross-platform design system for Web, iOS, and Android. Established UX Review process for all engineering teams, ensuring design quality from concept to production.</p>
+        </article>
+
+        <article class="job">
+          <div class="job-header">
+            <span class="job-company">Cirrus Insight</span>
+            <span class="job-title">Sr UX/UI Designer / DS Manager</span>
+            <p class="job-meta">Jul 2015 – Apr 2019</p>
+          </div>
+          <p class="job-description">Redesigned UX/UI across Web, iOS, and Android for Salesforce integration product. Produced design system used by entire team, launched UX Review process in Jira, and implemented Amplitude analytics. Customer satisfaction surveys cited UX/UI as a major product strength.</p>
+        </article>
+
+        <article class="job">
+          <div class="job-header">
+            <span class="job-company">SpeakUp</span>
+            <span class="job-title">Co-Founder & UX/UI Designer</span>
+            <p class="job-meta">Dec 2013 – Jul 2017</p>
+          </div>
+          <p class="job-description">Co-founded platform bringing youth, educators, and parents together for open conversations. Led end-to-end UX/UI design and frontend development.</p>
+        </article>
+
+        <article class="job">
+          <div class="job-header">
+            <span class="job-company">Wunderman West</span>
+            <span class="job-title">Senior Art Director</span>
+            <p class="job-meta">Jun 2010 – Mar 2013</p>
+          </div>
+          <p class="job-description">Art direction for global advertising agency. OC Addy Gold winner for Holiday Card campaign. Bronze for Invisalign website redesign.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Education -->
+    <section class="section" aria-labelledby="education-heading">
+      <h2 id="education-heading" class="section-label">Education</h2>
+      <div class="section-content">
+        <div>
+          <p class="education-name">Brooks College</p>
+          <p class="education-degree">Multimedia/Graphic Design · 2001–2003</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technical Skills -->
+    <section class="section" aria-labelledby="technical-heading">
+      <h2 id="technical-heading" class="section-label">Technical</h2>
+      <div class="section-content">
+        <div class="skills-grid" role="list">
+          <span role="listitem">Figma</span>
+          <span role="listitem">Design Tokens</span>
+          <span role="listitem">HTML/CSS</span>
+          <span role="listitem">Slack Workflows</span>
+          <span role="listitem">Loom</span>
+          <span role="listitem">Jira</span>
+          <span role="listitem">WCAG/A11y</span>
+          <span role="listitem">Component Libraries</span>
+          <span role="listitem">Prototyping</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leadership -->
+    <section class="section" aria-labelledby="leadership-heading">
+      <h2 id="leadership-heading" class="section-label">Leadership</h2>
+      <div class="section-content">
+        <div class="skills-grid" role="list">
+          <span role="listitem">Design Systems</span>
+          <span role="listitem">Cross-functional Collaboration</span>
+          <span role="listitem">Governance</span>
+          <span role="listitem">Change Management</span>
+          <span role="listitem">Stakeholder Alignment</span>
+          <span role="listitem">Adoption Strategy</span>
+          <span role="listitem">Team Building</span>
+          <span role="listitem">Strategic Initiative</span>
+          <span role="listitem">Design Operations</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Platforms -->
+    <section class="section" aria-labelledby="platforms-heading">
+      <h2 id="platforms-heading" class="section-label">Platforms</h2>
+      <div class="section-content">
+        <div class="skills-grid" role="list">
+          <span role="listitem">Web</span>
+          <span role="listitem">iOS</span>
+          <span role="listitem">Android</span>
+          <span role="listitem">Enterprise SaaS</span>
+          <span role="listitem">Mobile</span>
+          <span role="listitem">Cross-platform</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

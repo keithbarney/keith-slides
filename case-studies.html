@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Studies — Keith Barney</title>
+  <style>
+    :root {
+      --black: #18181b;
+      --white: #fafafa;
+      --warm-gray: #78716c;
+      --light-gray: #e7e5e4;
+      --bg: #fafafa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--black);
+      line-height: 1.5;
+      padding: 3rem 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 0.875rem;
+      color: var(--warm-gray);
+      margin-bottom: 2rem;
+    }
+
+    hr {
+      border: none;
+      border-top: 0.5px solid var(--light-gray);
+      margin: 2rem 0;
+    }
+
+    .case-study { margin-bottom: 3rem; }
+
+    .case-study-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-label {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: var(--warm-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .section-label:first-of-type { margin-top: 0; }
+
+    .artifact-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      list-style: none;
+    }
+
+    .artifact-list li {
+      background: var(--light-gray);
+      padding: 0.25rem 0.75rem;
+      border-radius: 2px;
+      font-size: 0.875rem;
+    }
+
+    p {
+      font-size: 0.9375rem;
+      color: var(--black);
+      margin-bottom: 0.75rem;
+    }
+
+    ul {
+      list-style: none;
+      margin-bottom: 0.75rem;
+    }
+
+    ul li {
+      font-size: 0.875rem;
+      color: var(--black);
+      padding-left: 1rem;
+      position: relative;
+      margin-bottom: 0.375rem;
+    }
+
+    ul li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: var(--warm-gray);
+    }
+
+    .ownership-type {
+      font-weight: 600;
+      font-size: 0.75rem;
+      color: var(--warm-gray);
+      margin-top: 0.75rem;
+      margin-bottom: 0.375rem;
+    }
+
+    .status {
+      background: var(--light-gray);
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .status-title {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: var(--warm-gray);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .status ul li { font-size: 0.875rem; }
+    .status li.done { color: var(--warm-gray); }
+  </style>
+</head>
+<body>
+
+  <h1>Case Studies</h1>
+  <p class="subtitle">Prepared for senior DS leadership portfolio</p>
+
+  <hr>
+
+  <!-- Case Study 1 -->
+  <article class="case-study">
+    <h2 class="case-study-title">1. Creating Experian's First Design System</h2>
+
+    <p class="section-label">Artifact Ideas</p>
+    <ul class="artifact-list">
+      <li>Animation</li>
+      <li>Tokens</li>
+      <li>Swatches</li>
+      <li>Components</li>
+      <li>Typography</li>
+    </ul>
+
+    <p class="section-label">Problem</p>
+    <p>No formal design system. Multiple domain teams independently creating UI patterns. Style guide offered guidance but no enforceable standards. Led to inconsistency, ongoing debate, slow decision-making.</p>
+
+    <p class="section-label">Scope of Ownership</p>
+    <p class="ownership-type">Directly Owned</p>
+    <ul>
+      <li>Buy-in communication with Design & Engineering Managers</li>
+      <li>First reusable libraries (iOS, Android, Web)</li>
+      <li>First Slack support channels + intake workflows</li>
+      <li>First base/alias token system</li>
+      <li>Typography scale</li>
+      <li>Design QA process (reviewing projects for system alignment)</li>
+    </ul>
+    <p class="ownership-type">Influenced</p>
+    <ul>
+      <li>Designers creating domain-specific reusable components</li>
+      <li>Shift toward global/systems thinking</li>
+    </ul>
+
+    <p class="section-label">Tradeoffs & Hard Calls</p>
+    <ul>
+      <li>Pushed back on skeptical engineering who didn't believe DS was needed</li>
+      <li>Sold value: centralized decisions, reusable code, faster shipping, baked-in accessibility</li>
+      <li>DSQA effort failed — couldn't scale without more resources; pushed ownership back to domain leads</li>
+      <li>Educated designers that overriding/detaching instances created confusion for developers</li>
+    </ul>
+
+    <p class="section-label">Impact</p>
+    <ul>
+      <li>DS formalized into first official team (Keith + 2 native designers)</li>
+      <li>Brett became team lead; enabled clearer communication to leadership</li>
+      <li>Adam (head of design) mandated all new projects use the DS</li>
+      <li>Engineering impact: less custom code, fewer bugs</li>
+      <li>High engagement in Slack support channels</li>
+    </ul>
+  </article>
+
+  <hr>
+
+  <!-- Case Study 2 -->
+  <article class="case-study">
+    <h2 class="case-study-title">2. Atlas Component Merge Across Platforms</h2>
+
+    <p class="section-label">Artifact Ideas</p>
+    <ul class="artifact-list">
+      <li>Animation</li>
+      <li>Unmerged and merged components</li>
+      <li>Wireframe animation showing merge + breaking changes</li>
+    </ul>
+
+    <p class="section-label">Problem</p>
+    <p>Platform-specific libraries evolved independently (web, iOS, Android). Web had separate mobile/tablet/desktop breakpoints. Fragmentation led to duplicated patterns, inconsistent behavior, maintenance overhead.</p>
+
+    <p class="section-label">Scope of Ownership</p>
+    <p class="ownership-type">Co-owned with Caleb</p>
+    <ul>
+      <li>Divided component list</li>
+      <li>Created branches, merged, released in waves over 2 months</li>
+      <li>Created formal 4-step deprecation process</li>
+      <li>Slack announcements + Loom videos</li>
+      <li>1:1 meetings with designers for check-ins and demos</li>
+    </ul>
+
+    <p class="section-label">Tradeoffs & Hard Calls</p>
+    <ul>
+      <li>Hard sell — created update work and design debt for designers</li>
+      <li>Knew long-term time savings outweighed short-term pain</li>
+      <li>Got buy-in from Brett, then Adam</li>
+      <li>Gave Adam a process + timeline for tracking</li>
+    </ul>
+
+    <p class="section-label">Impact</p>
+    <ul>
+      <li>Fewer Figma frames — same component works across iOS, Android, Web</li>
+      <li>Centralized design decisions</li>
+      <li>Reduced platform-switching overhead</li>
+      <li>Designers' Figma skills greatly increased</li>
+      <li>Keith and Caleb became the Figma experts</li>
+    </ul>
+  </article>
+
+  <hr>
+
+  <!-- Case Study 3 -->
+  <article class="case-study">
+    <h2 class="case-study-title">3. Atlas Audit — Design System Adoption Tool</h2>
+
+    <p class="section-label">Artifact Ideas</p>
+    <ul class="artifact-list">
+      <li>Animation</li>
+      <li>Atlas Audit UI</li>
+      <li>Highlights</li>
+      <li>Information panel</li>
+      <li>Legend</li>
+    </ul>
+
+    <p class="section-label">Problem</p>
+    <p>Multiple UI systems coexisted (Legacy, Next, Atlas, SDUI). No visibility into what was running in production. Adoption was abstract, slow, hard to operationalize.</p>
+
+    <p class="section-label">Scope of Ownership</p>
+    <p class="ownership-type">Directly Owned</p>
+    <ul>
+      <li>Owned idea completely</li>
+      <li>Created Figma prototype for developers</li>
+      <li>Collaborated with engineers for feedback</li>
+      <li>Did this autonomously — Brett/Adam trusted Keith to pursue ideas</li>
+    </ul>
+    <p class="ownership-type">Influenced</p>
+    <ul>
+      <li>Inspired other team members to create their own internal tools</li>
+      <li>Shifted developers' mindset — they started bringing ideas forward</li>
+      <li>Showed you identify and solve problems, not just work Jira tickets</li>
+    </ul>
+
+    <p class="section-label">Tradeoffs & Hard Calls</p>
+    <ul>
+      <li>Increased personal workload, but believed in it</li>
+      <li>Used as team bonding — fun project outside day-to-day work</li>
+      <li>Target user (Product Managers) far removed from DS team — harder adoption</li>
+      <li>Requires patience — internal tools are lower priority</li>
+    </ul>
+
+    <p class="section-label">Impact</p>
+    <ul>
+      <li>Surfaced work for offshore engineering team running low on tasks</li>
+      <li>Prevented wasted contract time/money</li>
+      <li>Made tech debt visible and actionable</li>
+      <li>Turned abstract "adoption" into concrete, prioritized work items</li>
+    </ul>
+  </article>
+
+
+</body>
+</html>
