@@ -1,0 +1,25 @@
+{
+  "name": "keith-slides",
+  "version": "1.0.0",
+  "description": "Interview presentation deck for Keith Barney — Design Systems Lead.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "browser-sync start --server --port 3200 --files '*.html, src/**/*' --no-open",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/keithbarney/keith-slides.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/keithbarney/keith-slides/issues"
+  },
+  "homepage": "https://github.com/keithbarney/keith-slides#readme",
+  "devDependencies": {
+    "browser-sync": "^3.0.4"
+  }
+}

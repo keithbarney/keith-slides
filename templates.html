@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Templates — Reference</title>
+  <link rel="stylesheet" href="src/assets/main.css">
+  <style>
+    /* ===== FONTS ===== */
+    @font-face {
+      font-family: 'Test American Grotesk';
+      src: url('src/assets/fonts/TestAmericanGrotesk-Regular.woff2') format('woff2'),
+           url('src/assets/fonts/TestAmericanGrotesk-Regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Test American Grotesk';
+      src: url('src/assets/fonts/TestAmericanGrotesk-Medium.woff2') format('woff2'),
+           url('src/assets/fonts/TestAmericanGrotesk-Medium.otf') format('opentype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Test American Grotesk';
+      src: url('src/assets/fonts/TestAmericanGrotesk-Bold.woff2') format('woff2'),
+           url('src/assets/fonts/TestAmericanGrotesk-Bold.otf') format('opentype');
+      font-weight: 700;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'JetBrains Mono';
+      src: url('src/assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    /* ===== TOKENS ===== */
+    :root {
+      --slide-padding: clamp(48px, 4vw, 96px);
+    }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: clamp(100%, calc(0.5vw + 0.625rem), 137.5%);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background: var(--ui-bg-default);
+      color: var(--ui-text-default);
+      padding: 48px;
+    }
+
+    /* ===== PAGE LAYOUT ===== */
+    .page-title {
+      font-family: var(--font-primary);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      color: var(--ui-text-strong);
+      margin-bottom: 16px;
+    }
+
+    .page-description {
+      font-size: var(--font-size-body-xlg);
+      color: var(--ui-text-default);
+      max-width: 65ch;
+      line-height: 1.6;
+      margin-bottom: 48px;
+    }
+
+    .template-section {
+      margin-bottom: 64px;
+    }
+
+    .template-label {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ui-text-default);
+      margin-bottom: 16px;
+    }
+
+    .template-description {
+      font-size: var(--font-size-body-xlg);
+      color: var(--ui-text-default);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    /* ===== SLIDE FRAME (renders each template at correct aspect ratio) ===== */
+    .slide-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 1px solid var(--ui-border-default);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    /* ===== SLIDE SYSTEM (copied from slides.html) ===== */
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      column-gap: clamp(24px, 1.5vw, 40px);
+      padding: var(--slide-padding);
+      background: var(--ui-bg-default);
+    }
+
+    .slide--title {
+      background: transparent;
+    }
+
+    /* ===== SLIDE TEMPLATES ===== */
+    .slide-template-intro .slide-content,
+    .slide-template-hero .slide-content {
+      grid-column: 1 / -1;
+      align-self: end;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 80px;
+    }
+
+    .slide-template-detail .slide-sidebar,
+    .slide-template-wide .slide-sidebar {
+      position: absolute;
+      top: var(--slide-padding);
+      left: var(--slide-padding);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 24px;
+    }
+
+    .slide-template-detail {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .slide-template-detail .slide-content {
+      grid-column: 1;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+      padding-left: var(--slide-padding);
+    }
+
+    .slide-template-detail .slide-visual {
+      grid-column: 2;
+      align-self: center;
+    }
+
+    .slide-template-wide .slide-content {
+      grid-column-start: 5;
+      grid-column-end: span 7;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== TYPOGRAPHY (copied from slides.html) ===== */
+    .display {
+      font-family: var(--font-primary);
+      font-size: clamp(2.5rem, 5vw, 5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      color: var(--ui-text-strong);
+    }
+
+    .heading {
+      font-family: var(--font-primary);
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.015em;
+      color: var(--ui-text-strong);
+    }
+
+    .subheading {
+      font-family: var(--font-primary);
+      font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--ui-text-default);
+    }
+
+    .body-text {
+      font-family: var(--font-primary);
+      font-size: var(--font-size-body-xlg);
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--ui-text-default);
+      max-width: 65ch;
+    }
+
+    .label {
+      font-family: var(--font-secondary);
+      font-size: var(--font-size-body-sm);
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ui-text-default);
+    }
+
+    .cs-number {
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      color: var(--ui-text-default);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .cs-index {
+      font-family: var(--font-secondary);
+      font-size: clamp(4rem, 8vw, 8rem);
+      font-weight: 400;
+      line-height: 1;
+      color: var(--ui-border-default);
+      letter-spacing: -0.02em;
+    }
+
+    /* ===== HELPERS ===== */
+    .flex-col { display: flex; flex-direction: column; }
+    .gap-xs { gap: 4px; }
+    .gap-sm { gap: 8px; }
+    .gap-md { gap: 16px; }
+    .gap-lg { gap: 24px; }
+    .gap-xl { gap: 32px; }
+
+    .rule { border: none; border-top: 1px solid var(--ui-border-default); }
+
+    .tag {
+      display: inline-block;
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px solid var(--ui-border-default);
+      color: var(--ui-text-default);
+      border-radius: 2px;
+    }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .visual-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+      border: 1px dashed var(--ui-border-default);
+      border-radius: 4px;
+      color: var(--ui-text-disabled);
+      font-family: var(--font-secondary);
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bullet-list li {
+      font-size: var(--font-size-body-xlg);
+      line-height: 1.5;
+      color: var(--ui-text-default);
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .bullet-list li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: var(--ui-text-default);
+    }
+
+    /* ===== CHECKLIST ===== */
+    .checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 48px;
+    }
+
+    .checklist li {
+      font-size: var(--font-size-body-xlg);
+      line-height: 1.5;
+      color: var(--ui-text-default);
+      padding-left: 28px;
+      position: relative;
+    }
+
+    .checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: var(--ui-text-default);
+    }
+
+    code {
+      font-family: var(--font-secondary);
+      font-size: 0.85em;
+      background: var(--ui-bg-muted);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+<h1 class="page-title">Slide Templates</h1>
+<p class="page-description">Copy-paste-ready HTML blocks for all 4 slide templates. Each renders at the correct layout — just replace the placeholder text.</p>
+
+
+<!-- ============================================ -->
+<!-- HOW TO ADD A CASE STUDY -->
+<!-- ============================================ -->
+<div class="template-section">
+  <p class="template-label">How to Add a Case Study</p>
+  <ol class="checklist">
+    <li>Copy the 4 slide blocks below (Hero + Detail + Detail/Wide + Wide) into <code>slides.html</code></li>
+    <li>Update <code>data-slide</code> numbers sequentially from the last existing slide</li>
+    <li>Replace the case study number, title, subtitle, and all placeholder content</li>
+    <li>Add a menu entry in the <code>&lt;nav class="menu-nav"&gt;</code> section with the correct <code>data-goto</code> value</li>
+    <li>Verify the slide counter shows the new total (bottom-right corner)</li>
+  </ol>
+</div>
+
+
+<!-- ============================================ -->
+<!-- TEMPLATE 1: INTRO / OUTRO -->
+<!-- ============================================ -->
+<div class="template-section">
+  <p class="template-label">Template 1 — Intro / Outro</p>
+  <p class="template-description">Full-width bottom-aligned on halftone. Used for the title slide and closing slide.</p>
+
+  <div class="slide-frame">
+    <div class="slide slide--title slide-template-intro">
+      <div class="slide-content gap-lg">
+        <h1 class="display">Slide Title</h1>
+        <div class="flex-col gap-xs">
+          <p class="subheading">Subtitle or role</p>
+          <p class="label">contact info · links</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- TEMPLATE 2: CASE STUDY HERO -->
+<!-- ============================================ -->
+<div class="template-section">
+  <p class="template-label">Template 2 — Case Study Hero</p>
+  <p class="template-description">Big number + display heading on halftone. Used for case study title slides.</p>
+
+  <div class="slide-frame">
+    <div class="slide slide--title slide-template-hero">
+      <div class="slide-content gap-md">
+        <div class="flex-col gap-sm">
+          <span class="cs-index">00</span>
+          <p class="cs-number">Case Study</p>
+        </div>
+        <h2 class="display">Case Study Title Goes Here</h2>
+        <p class="subheading">Descriptor · Key themes · Scope</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- TEMPLATE 3: CASE STUDY DETAIL -->
+<!-- ============================================ -->
+<div class="template-section">
+  <p class="template-label">Template 3 — Case Study Detail</p>
+  <p class="template-description">Sidebar + content + visual placeholder. Used for Problem, What I Built, and Approach slides.</p>
+
+  <div class="slide-frame">
+    <div class="slide slide-template-detail">
+      <div class="slide-sidebar">
+        <p class="cs-number">Case Study 00</p>
+        <p class="label">Section Label</p>
+      </div>
+      <div class="slide-content gap-xl">
+        <h2 class="heading">Section heading<br>goes here</h2>
+        <p class="body-text">Body text describing the problem, approach, or what was built. Keep it concise — two to three sentences max.</p>
+        <div class="tags">
+          <span class="tag">Tag One</span>
+          <span class="tag">Tag Two</span>
+          <span class="tag">Tag Three</span>
+        </div>
+      </div>
+      <div class="slide-visual">
+        <div class="visual-placeholder">Visual</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- TEMPLATE 3B: CASE STUDY DETAIL (What I Built variant) -->
+<!-- ============================================ -->
+<div class="template-section">
+  <p class="template-label">Template 3b — Case Study Detail (Ownership Split)</p>
+  <p class="template-description">Same layout with Directly Owned / Influenced content blocks. Used for What I Built slides.</p>
+
+  <div class="slide-frame">
+    <div class="slide slide-template-detail">
+      <div class="slide-sidebar">
+        <p class="cs-number">Case Study 00</p>
+        <p class="label">What I Built</p>
+      </div>
+      <div class="slide-content gap-xl">
+        <p class="body-text">Brief description of what was built and its purpose.</p>
+        <hr class="rule">
+        <div class="flex-col gap-lg">
+          <div class="flex-col gap-sm">
+            <p class="subheading" style="color: var(--ui-text-strong);">Directly Owned</p>
+            <ul class="bullet-list">
+              <li>First owned item</li>
+              <li>Second owned item</li>
+              <li>Third owned item</li>
+            </ul>
+          </div>
+          <hr class="rule">
+          <div class="flex-col gap-sm">
+            <p class="subheading" style="color: var(--ui-text-strong);">Influenced</p>
+            <ul class="bullet-list">
+              <li>First influenced item</li>
+              <li>Second influenced item</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-visual">
+        <div class="visual-placeholder">Visual</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- TEMPLATE 4: CASE STUDY WIDE -->
+<!-- ============================================ -->
+<div class="template-section">
+  <p class="template-label">Template 4 — Case Study Wide</p>
+  <p class="template-description">Sidebar + wide stacked content, no visual. Used for Impact and Key Decisions slides.</p>
+
+  <div class="slide-frame">
+    <div class="slide slide-template-wide">
+      <div class="slide-sidebar">
+        <p class="cs-number">Case Study 00</p>
+        <p class="label">Impact</p>
+      </div>
+      <div class="slide-content gap-xl">
+        <div class="flex-col gap-lg">
+          <div class="flex-col gap-sm">
+            <p class="subheading" style="color: var(--ui-text-strong);">Metric or outcome</p>
+            <p class="body-text">Description of the impact or outcome</p>
+          </div>
+          <hr class="rule">
+          <div class="flex-col gap-sm">
+            <p class="subheading" style="color: var(--ui-text-strong);">Second metric or outcome</p>
+            <p class="body-text">Description of the impact or outcome</p>
+          </div>
+          <hr class="rule">
+          <div class="flex-col gap-sm">
+            <p class="subheading" style="color: var(--ui-text-strong);">Third metric or outcome</p>
+            <p class="body-text">Description of the impact or outcome</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>

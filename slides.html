@@ -408,6 +408,57 @@
       text-transform: uppercase;
     }
 
+    /* ===== SLIDE TEMPLATES ===== */
+
+    /* Intro/Outro + Hero — full-width bottom-aligned on halftone */
+    .slide-template-intro .slide-content,
+    .slide-template-hero .slide-content {
+      grid-column: 1 / -1;
+      align-self: end;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 80px;
+    }
+
+    /* Detail + Wide — sidebar as positioned overlay (matches Figma) */
+    .slide-template-detail .slide-sidebar,
+    .slide-template-wide .slide-sidebar {
+      position: absolute;
+      top: var(--slide-padding);
+      left: var(--slide-padding);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 24px;
+    }
+
+    /* Detail — 50/50 split (matches Figma CaseStudyCards) */
+    .slide-template-detail {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .slide-template-detail .slide-content {
+      grid-column: 1;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+      padding-left: var(--slide-padding);
+    }
+
+    .slide-template-detail .slide-visual {
+      grid-column: 2;
+      align-self: center;
+    }
+
+    /* Wide — content offset to right (matches Figma SlideSemiHero) */
+    .slide-template-wide .slide-content {
+      grid-column-start: 5;
+      grid-column-end: span 7;
+      align-self: center;
+      display: flex;
+      flex-direction: column;
+    }
+
     /* ===== OWNERSHIP SPLIT ===== */
     .ownership {
       display: flex;
@@ -638,11 +689,12 @@
 
 <div class="deck" id="deck">
 
+  <template>
   <!-- ============================================ -->
   <!-- SLIDE 01 — TITLE -->
   <!-- ============================================ -->
-  <div class="slide slide--title active" data-slide="0">
-    <div class="span-full self-end flex-col gap-lg" style="padding-bottom: 80px;">
+  <div class="slide slide--title slide-template-intro active" data-slide="0">
+    <div class="slide-content gap-lg">
       <h1 class="display" style="white-space: nowrap;">Keith Barney</h1>
       <div class="flex-col gap-xs">
         <p class="subheading">Design Systems Lead</p>
@@ -654,11 +706,11 @@
   <!-- ============================================ -->
   <!-- SLIDE 02 — THE THROUGH-LINE -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="1">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="1">
+    <div class="slide-sidebar">
       <p class="label">Framing</p>
     </div>
-    <div class="start-5 span-7 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <h2 class="heading">A career crafting systems</h2>
       <p class="body-text">I've spent 12 years moving from hands-on craft toward systems-level thinking. Each role gave me something new — startup ownership, team leadership and cross-platform architecture.</p>
       <hr class="rule" style="width: 64px;">
@@ -669,12 +721,12 @@
   <!-- ============================================ -->
   <!-- SLIDE 03 — CAREER TIMELINE -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="2">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="2">
+    <div class="slide-sidebar">
       <p class="label">Career</p>
       <p class="body-text">12+ years in design.</p>
     </div>
-    <div class="start-5 span-7 self-center">
+    <div class="slide-content">
       <div class="timeline">
         <div class="timeline-entry">
           <span class="timeline-year">2021-Present</span>
@@ -735,52 +787,54 @@
     </div>
   </div>
 
+  </template>
+
   <!-- ============================================ -->
   <!-- SLIDE 04 — CS1 TITLE -->
   <!-- ============================================ -->
-  <div class="slide slide--title" data-slide="3">
-    <div class="span-full self-end flex-col gap-md" style="padding-bottom: 80px;">
+  <div class="slide slide--title slide-template-hero active" data-slide="3">
+    <div class="slide-content gap-md">
       <div class="flex-col gap-sm">
         <span class="cs-index">01</span>
         <p class="cs-number">Case Study</p>
       </div>
-      <h2 class="display">Creating Experian's First Design System</h2>
-      <p class="subheading">Big picture · High-level expertise · Wide range</p>
+      <h2 class="display">From zero to company mandate</h2>
+      <p class="subheading">Creating Experian's first Design System</p>
     </div>
   </div>
 
   <!-- ============================================ -->
   <!-- SLIDE 05 — CS1 PROBLEM -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="4">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="4">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 01</p>
       <p class="label">Problem</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-xl">
-      <h2 class="heading">Multiple teams,<br>no shared system</h2>
-      <p class="body-text">Multiple domain teams were independently creating UI patterns. There was a style guide, but it didn't have the structure to enforce consistency — so decisions were slow and patterns kept diverging.</p>
-      <div class="tags">
-        <span class="tag">Inconsistency</span>
-        <span class="tag">No governance</span>
-        <span class="tag">Fragmented patterns</span>
-        <span class="tag">Slow shipping</span>
-      </div>
+    <div class="slide-content gap-xl">
+      <h2 class="heading">No system.<br>No communication.</h2>
+      <ul class="bullet-list">
+        <li>No design system</li>
+        <li>A style guide but no governance</li>
+        <li>Teams creating patterns independently</li>
+        <li>Inconsistent user experience</li>
+      </ul>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
 
+  <template>
   <!-- ============================================ -->
   <!-- SLIDE 06 — CS1 WHAT I BUILT -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="5">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="5">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 01</p>
       <p class="label">What I Built</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <div class="flex-col gap-lg">
         <div class="flex-col gap-sm">
           <p class="subheading" style="color: var(--ui-text-strong);">Directly Owned</p>
@@ -803,7 +857,7 @@
         </div>
       </div>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
@@ -811,12 +865,12 @@
   <!-- ============================================ -->
   <!-- SLIDE 07 — CS1 HARD CALLS -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="6">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="6">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 01</p>
       <p class="label">Key Decisions</p>
     </div>
-    <div class="start-5 span-7 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <div class="flex-col gap-lg">
         <div class="flex-col gap-sm">
           <p class="subheading" style="color: var(--ui-text-strong);">Building buy-in with engineering</p>
@@ -839,12 +893,12 @@
   <!-- ============================================ -->
   <!-- SLIDE 08 — CS1 IMPACT -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="7">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="7">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 01</p>
       <p class="label">Impact</p>
     </div>
-    <div class="start-5 span-7 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <div class="flex-col gap-lg">
         <div class="flex-col gap-sm">
           <p class="subheading" style="color: var(--ui-text-strong);">0 → 1</p>
@@ -874,51 +928,54 @@
     </div>
   </div>
 
+  </template>
+
   <!-- ============================================ -->
   <!-- SLIDE 09 — CS2 TITLE -->
   <!-- ============================================ -->
-  <div class="slide slide--title" data-slide="8">
-    <div class="span-full self-end flex-col gap-md" style="padding-bottom: 80px;">
+  <div class="slide slide--title slide-template-hero" data-slide="8">
+    <div class="slide-content gap-md">
       <div class="flex-col gap-sm">
         <span class="cs-index">02</span>
         <p class="cs-number">Case Study</p>
       </div>
-      <h2 class="display">Atlas Component Merge Across Platforms</h2>
-      <p class="subheading">On the ground · Change management at scale</p>
+      <h2 class="display">Platform agnostic components</h2>
+      <p class="subheading">Merging Atlas components for Web, iOS and Android</p>
     </div>
   </div>
 
   <!-- ============================================ -->
   <!-- SLIDE 10 — CS2 PROBLEM -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="9">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="9">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 02</p>
       <p class="label">Problem</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-xl">
-      <h2 class="heading">Same components.<br>Different everywhere.</h2>
-      <p class="body-text">Platform-specific libraries evolved independently — Web, iOS, Android. The web library had separate mobile, tablet, and desktop breakpoints. Fragmentation led to duplicated patterns, inconsistent behavior, and mounting maintenance overhead.</p>
-      <div class="tags">
-        <span class="tag">Platform fragmentation</span>
-        <span class="tag">Duplicated patterns</span>
-        <span class="tag">Maintenance burden</span>
-      </div>
+    <div class="slide-content gap-xl">
+      <h2 class="heading">Three libraries.<br>Three times the work.</h2>
+      <ul class="bullet-list">
+        <li>Separate Web / iOS / Android Figma Libraries</li>
+        <li>Slightly different components for 3 platforms</li>
+        <li>Giant, confusing Figma files showing flows for each platform</li>
+        <li>Fixing bugs in 3 separate places</li>
+      </ul>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
 
+  <template>
   <!-- ============================================ -->
   <!-- SLIDE 11 — CS2 APPROACH -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="10">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="10">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 02</p>
       <p class="label">Approach</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-lg">
+    <div class="slide-content gap-lg">
       <p class="body-text">Caleb and I co-owned this effort. We divided the component list, created branches, and merged and released in waves over about two months.</p>
       <div class="flex-col gap-lg">
         <div class="flex-col gap-sm">
@@ -937,7 +994,7 @@
         </div>
       </div>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
@@ -945,12 +1002,12 @@
   <!-- ============================================ -->
   <!-- SLIDE 12 — CS2 IMPACT -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="11">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="11">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 02</p>
       <p class="label">Impact</p>
     </div>
-    <div class="start-5 span-7 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <div class="flex-col gap-lg">
         <div class="flex-col gap-sm">
           <p class="subheading" style="color: var(--ui-text-strong);">1 component, all platforms</p>
@@ -975,52 +1032,54 @@
     </div>
   </div>
 
+  </template>
+
   <!-- ============================================ -->
   <!-- SLIDE 13 — CS3 TITLE -->
   <!-- ============================================ -->
-  <div class="slide slide--title" data-slide="12">
-    <div class="span-full self-end flex-col gap-md" style="padding-bottom: 80px;">
+  <div class="slide slide--title slide-template-hero" data-slide="12">
+    <div class="slide-content gap-md">
       <div class="flex-col gap-sm">
         <span class="cs-index">03</span>
         <p class="cs-number">Case Study</p>
       </div>
-      <h2 class="display">Atlas Audit</h2>
-      <p class="subheading">Solving quality · Measurable outcomes · Autonomous initiative</p>
+      <h2 class="display">Making adoption measurable</h2>
+      <p class="subheading">Creating Actionable Tools for Atlas Design System</p>
     </div>
   </div>
 
   <!-- ============================================ -->
   <!-- SLIDE 14 — CS3 PROBLEM -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="13">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="13">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 03</p>
       <p class="label">Problem</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-xl">
-      <h2 class="heading">No way to measure adoption</h2>
-      <p class="body-text">Four UI systems coexisted in production: Legacy, Next, Atlas, and SDUI. Nobody could see what was actually running. Adoption was abstract, slow, and impossible to operationalize or prioritize.</p>
-      <div class="tags">
-        <span class="tag">4 UI systems</span>
-        <span class="tag">No visibility</span>
-        <span class="tag">Abstract adoption</span>
-        <span class="tag">Tech debt hidden</span>
-      </div>
+    <div class="slide-content gap-xl">
+      <h2 class="heading">How do we prove the value of Atlas Design System?</h2>
+      <ul class="bullet-list">
+        <li>Unclear design system adoption across teams</li>
+        <li>No visibility into highest-impact focus areas</li>
+        <li>Migration confusion between legacy and Atlas</li>
+        <li>Excess unused code accumulating in the codebase</li>
+      </ul>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
 
+  <template>
   <!-- ============================================ -->
   <!-- SLIDE 15 — CS3 WHAT I BUILT -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="14">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="14">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 03</p>
       <p class="label">What I Built</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <p class="body-text">An internal tool that visualizes which UI system every element in production belongs to — turning abstract "adoption" into a concrete, prioritized backlog.</p>
       <hr class="rule">
       <div class="flex-col gap-lg">
@@ -1044,7 +1103,7 @@
         </div>
       </div>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
@@ -1052,12 +1111,12 @@
   <!-- ============================================ -->
   <!-- SLIDE 16 — CS3 IMPACT -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="15">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="15">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 03</p>
       <p class="label">Impact</p>
     </div>
-    <div class="start-5 span-7 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <div class="flex-col gap-lg">
         <div class="flex-col gap-sm">
           <p class="subheading" style="color: var(--ui-text-strong);">Tech debt → visible</p>
@@ -1082,29 +1141,31 @@
     </div>
   </div>
 
+  </template>
+
   <!-- ============================================ -->
   <!-- SLIDE 17 — CS4 TITLE -->
   <!-- ============================================ -->
-  <div class="slide slide--title" data-slide="16">
-    <div class="span-full self-end flex-col gap-md" style="padding-bottom: 80px;">
+  <div class="slide slide--title slide-template-hero" data-slide="16">
+    <div class="slide-content gap-md">
       <div class="flex-col gap-sm">
         <span class="cs-index">04</span>
         <p class="cs-number">Case Study</p>
       </div>
-      <h2 class="display">Building SpeakUp from Zero</h2>
-      <p class="subheading">Co-founder · End-to-end design · Remote team leadership</p>
+      <h2 class="display">Giving employees a voice</h2>
+      <p class="subheading">Co-founding and designing SpeakUp</p>
     </div>
   </div>
 
   <!-- ============================================ -->
   <!-- SLIDE 18 — CS4 PROBLEM -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="17">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="17">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 04</p>
       <p class="label">Problem</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <h2 class="heading">Good ideas with<br>no place to go</h2>
       <p class="body-text">Important problems and ideas were scattered across organizations — buried in hallway conversations, lost in email threads, invisible to leadership. Companies had no structured way to surface what their own people already knew.</p>
       <div class="tags">
@@ -1114,20 +1175,21 @@
         <span class="tag">Top-down only</span>
       </div>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
 
+  <template>
   <!-- ============================================ -->
   <!-- SLIDE 19 — CS4 WHAT I BUILT -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="18">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="18">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 04</p>
       <p class="label">What I Built</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <p class="body-text">Co-founded a workplace platform where employees post problems, propose solutions, and vote on ideas — turning scattered insight into concrete decisions for leadership.</p>
       <hr class="rule">
       <div class="flex-col gap-lg">
@@ -1150,7 +1212,7 @@
         </div>
       </div>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
@@ -1158,12 +1220,12 @@
   <!-- ============================================ -->
   <!-- SLIDE 20 — CS4 IMPACT -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="19">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="19">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 04</p>
       <p class="label">Impact</p>
     </div>
-    <div class="start-5 span-7 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <div class="flex-col gap-lg">
         <div class="flex-col gap-sm">
           <p class="subheading" style="color: var(--ui-text-strong);">0 → shipped product</p>
@@ -1188,29 +1250,31 @@
     </div>
   </div>
 
+  </template>
+
   <!-- ============================================ -->
   <!-- SLIDE 21 — CS5 TITLE -->
   <!-- ============================================ -->
-  <div class="slide slide--title" data-slide="20">
-    <div class="span-full self-end flex-col gap-md" style="padding-bottom: 80px;">
+  <div class="slide slide--title slide-template-hero" data-slide="20">
+    <div class="slide-content gap-md">
       <div class="flex-col gap-sm">
         <span class="cs-index">05</span>
         <p class="cs-number">Case Study</p>
       </div>
       <h2 class="display">Paciolan Design System</h2>
-      <p class="subheading">Team leadership · Process design · First DS at a new company</p>
+      <p class="subheading">First design system, team of six</p>
     </div>
   </div>
 
   <!-- ============================================ -->
   <!-- SLIDE 22 — CS5 PROBLEM -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="21">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="21">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 05</p>
       <p class="label">Problem</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <h2 class="heading">A team without<br>shared standards</h2>
       <p class="body-text">Inherited a product with no design system and a team of six designers working independently. No formal review process meant inconsistent quality, duplicated work, and misalignment between design and engineering.</p>
       <div class="tags">
@@ -1220,20 +1284,22 @@
         <span class="tag">Inconsistent quality</span>
       </div>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
 
+  <template>
+
   <!-- ============================================ -->
   <!-- SLIDE 23 — CS5 WHAT I BUILT -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="22">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-detail" data-slide="22">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 05</p>
       <p class="label">What I Built</p>
     </div>
-    <div class="start-4 span-3 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <p class="body-text">Built the company's first design system while establishing a formal UX review process that created a shared quality bar across the team.</p>
       <hr class="rule">
       <div class="flex-col gap-lg">
@@ -1256,7 +1322,7 @@
         </div>
       </div>
     </div>
-    <div class="start-7 span-6 self-center">
+    <div class="slide-visual">
       <div class="visual-placeholder">Visual</div>
     </div>
   </div>
@@ -1264,12 +1330,12 @@
   <!-- ============================================ -->
   <!-- SLIDE 24 — CS5 IMPACT -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="23">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="23">
+    <div class="slide-sidebar">
       <p class="cs-number">Case Study 05</p>
       <p class="label">Impact</p>
     </div>
-    <div class="start-5 span-7 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <div class="flex-col gap-lg">
         <div class="flex-col gap-sm">
           <p class="subheading" style="color: var(--ui-text-strong);">0 → 1</p>
@@ -1297,11 +1363,11 @@
   <!-- ============================================ -->
   <!-- SLIDE 25 — THE ARC -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="24">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="24">
+    <div class="slide-sidebar">
       <p class="label">The Arc</p>
     </div>
-    <div class="start-5 span-7 self-center flex-col gap-lg">
+    <div class="slide-content gap-lg">
       <div class="flex-col gap-sm">
         <p class="cs-number">01 — Foundation</p>
         <p class="heading">Built the system from zero</p>
@@ -1337,11 +1403,11 @@
   <!-- ============================================ -->
   <!-- SLIDE 26 — WHAT I BRING -->
   <!-- ============================================ -->
-  <div class="slide" data-slide="25">
-    <div class="span-3 self-start flex-col gap-sm" style="padding-top: 24px;">
+  <div class="slide slide-template-wide" data-slide="25">
+    <div class="slide-sidebar">
       <p class="label">What I Bring</p>
     </div>
-    <div class="start-5 span-7 self-center flex-col gap-xl">
+    <div class="slide-content gap-xl">
       <div class="flex-col gap-lg">
         <div class="flex-col gap-xs">
           <p class="subheading" style="color: var(--ui-text-strong);">Systems thinker</p>
@@ -1369,8 +1435,8 @@
   <!-- ============================================ -->
   <!-- SLIDE 27 — CLOSING -->
   <!-- ============================================ -->
-  <div class="slide slide--title" data-slide="26">
-    <div class="span-full self-end flex-col gap-lg" style="padding-bottom: 80px;">
+  <div class="slide slide--title slide-template-intro" data-slide="26">
+    <div class="slide-content gap-lg">
       <h2 class="display">I bring clarity to<br>complex systems.</h2>
       <hr class="rule" style="width: 64px;">
       <div class="flex-col gap-xs">
@@ -1379,6 +1445,7 @@
       </div>
     </div>
   </div>
+  </template>
 
 </div>
 
@@ -1406,7 +1473,7 @@
     </div>
     <div class="menu-item" data-goto="8">
       <span class="menu-item-number">02</span>
-      <span class="menu-item-label">Atlas Component Merge</span>
+      <span class="menu-item-label">Cross Platform Components</span>
     </div>
     <div class="menu-item" data-goto="12">
       <span class="menu-item-number">03</span>
