@@ -946,7 +946,26 @@
             var startTime = performance.now();
 
             // Tunable params
-            var P = { speed: 2.0, drift: 5.0, dotScale: 0.6 };
+            var P = { speed: 2.0, drift: 5.0, dotScale: 0.5 };
+
+            // Base token colors (800 range) — one per island/team
+            var ISLAND_COLORS = [
+                '#1948a3', // blue-800
+                '#1a535a', // teal-800
+                '#633495', // purple-800
+                '#950f22', // red-800
+                '#763a00', // amber-800
+                '#0d572d'  // green-800
+            ];
+            // Accent colors (400 range) — for the white-replacement highlight dots
+            var ACCENT_COLORS = [
+                '#6daafb', // blue-400
+                '#01b8ca', // teal-400
+                '#c490f9', // purple-400
+                '#fc7f79', // red-400
+                '#df9500', // amber-400
+                '#06c167'  // green-400
+            ];
 
             var islands = [
                 { cx: 0.2, cy: 0.18, radius: 0.18, grid: 8, r: 2.0, seed: 10, speed: 0.7, freqX: 0.3, freqY: 0.25, dirX: 1, dirY: 0.3, phase: 0 },
@@ -977,7 +996,7 @@
                 '</style>' +
                 '<label>Speed <input type="range" min="0" max="50" value="20" id="cs1-speed"><span class="val" id="cs1-speed-val">2.0</span></label>' +
                 '<label>Drift <input type="range" min="0" max="50" value="50" id="cs1-drift"><span class="val" id="cs1-drift-val">5.0</span></label>' +
-                '<label>Dots <input type="range" min="3" max="30" value="6" id="cs1-dots"><span class="val" id="cs1-dots-val">0.6</span></label>' +
+                '<label>Dots <input type="range" min="3" max="30" value="5" id="cs1-dots"><span class="val" id="cs1-dots-val">0.5</span></label>' +
                 '<button class="copy-btn" id="cs1-copy">Copy</button>' +
                 '<span class="close-btn" id="cs1-close">✕</span>';
             document.body.appendChild(panel);
@@ -1048,7 +1067,7 @@
                             var fade = 1 - Math.pow(dist / edgeRadius, 3);
                             var r = island.r * P.dotScale * fade;
                             if (r < 0.4) continue;
-                            ctx.fillStyle = hash(col * 7.3, row * 13.7, island.seed + 500) < 0.06 ? '#ffffff' : DOT;
+                            ctx.fillStyle = hash(col * 7.3, row * 13.7, island.seed + 500) < 0.06 ? ACCENT_COLORS[i] : ISLAND_COLORS[i];
                             ctx.beginPath();
                             ctx.arc(x, y, r, 0, TAU);
                             ctx.fill();
