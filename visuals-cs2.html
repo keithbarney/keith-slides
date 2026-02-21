@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Options — CS2 Problem (Maze)</title>
+    <link rel="stylesheet" href="src/assets/main.css">
+    <style>
+        @font-face {
+            font-family: 'Test American Grotesk';
+            src: url('src/assets/fonts/TestAmericanGrotesk-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('src/assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background: var(--ui-bg-default);
+            color: var(--ui-text-default);
+            padding: 48px;
+        }
+
+        .page-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: var(--ui-text-strong);
+            margin-bottom: 8px;
+        }
+
+        .page-description {
+            font-size: var(--font-size-body-xlg);
+            color: var(--ui-text-default);
+            margin-bottom: 48px;
+            max-width: 65ch;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        .option {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+            max-width: calc(50% - 16px);
+        }
+
+        .option-number {
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ui-text-default);
+        }
+
+        .option-title {
+            font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+            font-weight: 500;
+            color: var(--ui-text-strong);
+        }
+
+        .option-description {
+            font-size: var(--font-size-body-sm);
+            color: var(--ui-text-default);
+            line-height: 1.5;
+        }
+
+        .canvas-frame {
+            width: 100%;
+            aspect-ratio: 7 / 8;
+            border: 1px solid var(--ui-border-default);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .canvas-frame canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="page-title">CS2 Problem — Maze Concepts</h1>
+<p class="page-description">"Three libraries. Three times the work." — Same maze, three sequential runs. Each color completes the path before the next begins.</p>
+
+<div class="options-grid">
+
+    <!-- Option 1: Maze Runner -->
+    <div class="option">
+        <p class="option-number">Option 1</p>
+        <p class="option-title">Maze Runner</p>
+        <p class="option-description">Classic maze with dot-grid walls. A stream of dots traces the solution path — first blue, then red, then green. Completed trails stay dimly lit.</p>
+        <div class="canvas-frame"><canvas id="cv1"></canvas></div>
+    </div>
+
+    <!-- Option 2: Fade & Repeat -->
+    <div class="option">
+        <p class="option-number">Option 2</p>
+        <p class="option-title">Fade & Repeat</p>
+        <p class="option-description">Same maze but each trail fades out completely before the next color begins. Emphasizes the wasted repetition — nothing carries over.</p>
+        <div class="canvas-frame"><canvas id="cv2"></canvas></div>
+    </div>
+
+    <!-- Option 3: Particle Stream -->
+    <div class="option">
+        <p class="option-number">Option 3</p>
+        <p class="option-title">Particle Stream</p>
+        <p class="option-description">Multiple dots flow through the maze simultaneously like a current. Denser, more fluid. Each color takes a turn flooding the same path.</p>
+        <div class="canvas-frame"><canvas id="cv3"></canvas></div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    var DPR = window.devicePixelRatio || 1;
+    var BG = '#141414';
+    var TAU = Math.PI * 2;
+
+    // Base token colors
+    var COLORS_800 = ['#1948a3', '#950f22', '#0d572d'];
+    var COLORS_400 = ['#6daafb', '#fc7f79', '#06c167'];
+    var COLORS_600 = ['#266ef1', '#de1135', '#0e8345'];
+
+    // --- Maze generation (recursive backtracker) ---
+    function generateMaze(cols, rows, seed) {
+        // Seeded random
+        var s = seed;
+        function rand() {
+            s = (s * 1103515245 + 12345) & 0x7fffffff;
+            return s / 0x7fffffff;
+        }
+
+        // Grid: 0 = wall, 1 = passage
+        var grid = [];
+        for (var y = 0; y < rows; y++) {
+            grid[y] = [];
+            for (var x = 0; x < cols; x++) {
+                grid[y][x] = 0;
+            }
+        }
+
+        // Carve maze using iterative backtracker
+        var startX = 1, startY = 1;
+        grid[startY][startX] = 1;
+        var stack = [[startX, startY]];
+        var dirs = [[0, -2], [2, 0], [0, 2], [-2, 0]];
+
+        while (stack.length > 0) {
+            var current = stack[stack.length - 1];
+            var cx = current[0], cy = current[1];
+
+            // Find unvisited neighbors
+            var neighbors = [];
+            for (var di = 0; di < dirs.length; di++) {
+                var nx = cx + dirs[di][0], ny = cy + dirs[di][1];
+                if (nx > 0 && nx < cols - 1 && ny > 0 && ny < rows - 1 && grid[ny][nx] === 0) {
+                    neighbors.push(di);
+                }
+            }
+
+            if (neighbors.length === 0) {
+                stack.pop();
+            } else {
+                var pick = neighbors[Math.floor(rand() * neighbors.length)];
+                var dx = dirs[pick][0], dy = dirs[pick][1];
+                // Carve wall between
+                grid[cy + dy / 2][cx + dx / 2] = 1;
+                grid[cy + dy][cx + dx] = 1;
+                stack.push([cx + dx, cy + dy]);
+            }
+        }
+
+        return grid;
+    }
+
+    // --- Solve maze (BFS) ---
+    function solveMaze(grid, startX, startY, endX, endY) {
+        var rows = grid.length, cols = grid[0].length;
+        var visited = [];
+        for (var y = 0; y < rows; y++) {
+            visited[y] = [];
+            for (var x = 0; x < cols; x++) visited[y][x] = false;
+        }
+
+        var queue = [[startX, startY, [[startX, startY]]]];
+        visited[startY][startX] = true;
+        var dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+
+        while (queue.length > 0) {
+            var item = queue.shift();
+            var cx = item[0], cy = item[1], path = item[2];
+
+            if (cx === endX && cy === endY) return path;
+
+            for (var di = 0; di < dirs.length; di++) {
+                var nx = cx + dirs[di][0], ny = cy + dirs[di][1];
+                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !visited[ny][nx] && grid[ny][nx] === 1) {
+                    visited[ny][nx] = true;
+                    var newPath = path.slice();
+                    newPath.push([nx, ny]);
+                    queue.push([nx, ny, newPath]);
+                }
+            }
+        }
+        return [];
+    }
+
+    function setupCanvas(id) {
+        var canvas = document.getElementById(id);
+        var ctx = canvas.getContext('2d');
+        var parent = canvas.parentElement;
+        var w = parent.clientWidth;
+        var h = parent.clientHeight;
+        canvas.width = w * DPR;
+        canvas.height = h * DPR;
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        return { canvas: canvas, ctx: ctx, w: w, h: h };
+    }
+
+    // Shared maze dimensions
+    var MAZE_COLS = 41; // Must be odd
+    var MAZE_ROWS = 47; // Must be odd
+    var MAZE_SEED = 77;
+
+    var sharedGrid = generateMaze(MAZE_COLS, MAZE_ROWS, MAZE_SEED);
+    var sharedPath = solveMaze(sharedGrid, 1, 1, MAZE_COLS - 2, MAZE_ROWS - 2);
+
+    // =============================================
+    // OPTION 1: MAZE RUNNER
+    // Trails stay lit after each color completes
+    // =============================================
+    (function () {
+        var s = setupCanvas('cv1');
+        var ctx = s.ctx, w = s.w, h = s.h;
+
+        var cellW = w / MAZE_COLS;
+        var cellH = h / MAZE_ROWS;
+        var dotR = Math.min(cellW, cellH) * 0.25;
+
+        var stepsPerFrame = 2;
+        var totalSteps = sharedPath.length;
+        var cycleLength = totalSteps + 30; // pause between colors
+        var currentFrame = 0;
+
+        // Track trail state: which cells are lit and in what color
+        var trails = {}; // key "x,y" -> colorIndex
+
+        function draw() {
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, w, h);
+
+            var fullCycle = cycleLength * 3;
+            var frame = currentFrame % fullCycle;
+            var colorIndex = Math.floor(frame / cycleLength);
+            var stepInCycle = Math.min((frame % cycleLength) * stepsPerFrame, totalSteps);
+
+            // Reset trails at start of full cycle
+            if (frame === 0) trails = {};
+
+            // Update trail for current color
+            for (var si = 0; si < stepInCycle; si++) {
+                var key = sharedPath[si][0] + ',' + sharedPath[si][1];
+                trails[key] = colorIndex;
+            }
+
+            // Draw maze walls as dim dots
+            for (var y = 0; y < MAZE_ROWS; y++) {
+                for (var x = 0; x < MAZE_COLS; x++) {
+                    var px = x * cellW + cellW / 2;
+                    var py = y * cellH + cellH / 2;
+
+                    if (sharedGrid[y][x] === 0) {
+                        // Wall dot
+                        ctx.fillStyle = '#1e1e1e';
+                        ctx.beginPath();
+                        ctx.arc(px, py, dotR * 0.6, 0, TAU);
+                        ctx.fill();
+                    } else {
+                        // Path cell — check if trail
+                        var key = x + ',' + y;
+                        if (trails[key] !== undefined) {
+                            ctx.fillStyle = COLORS_800[trails[key]];
+                            ctx.beginPath();
+                            ctx.arc(px, py, dotR, 0, TAU);
+                            ctx.fill();
+                        }
+                    }
+                }
+            }
+
+            // Draw leading dot (bright)
+            if (stepInCycle > 0 && stepInCycle < totalSteps) {
+                var head = sharedPath[Math.min(stepInCycle, totalSteps - 1)];
+                var hx = head[0] * cellW + cellW / 2;
+                var hy = head[1] * cellH + cellH / 2;
+                ctx.fillStyle = COLORS_400[colorIndex];
+                ctx.beginPath();
+                ctx.arc(hx, hy, dotR * 1.6, 0, TAU);
+                ctx.fill();
+
+                // Tail glow (last few steps brighter)
+                var tailLen = 12;
+                for (var ti = Math.max(0, stepInCycle - tailLen); ti < stepInCycle; ti++) {
+                    var tp = sharedPath[ti];
+                    var tAlpha = (ti - (stepInCycle - tailLen)) / tailLen;
+                    ctx.fillStyle = COLORS_600[colorIndex];
+                    ctx.globalAlpha = 0.3 + tAlpha * 0.7;
+                    ctx.beginPath();
+                    ctx.arc(tp[0] * cellW + cellW / 2, tp[1] * cellH + cellH / 2, dotR * (0.8 + tAlpha * 0.4), 0, TAU);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+            }
+
+            currentFrame++;
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    })();
+
+    // =============================================
+    // OPTION 2: FADE & REPEAT
+    // Each trail fades before next color starts
+    // =============================================
+    (function () {
+        var s = setupCanvas('cv2');
+        var ctx = s.ctx, w = s.w, h = s.h;
+
+        var cellW = w / MAZE_COLS;
+        var cellH = h / MAZE_ROWS;
+        var dotR = Math.min(cellW, cellH) * 0.25;
+
+        var stepsPerFrame = 2;
+        var totalSteps = sharedPath.length;
+        var fadeFrames = 40;
+        var cycleLength = totalSteps + fadeFrames + 20;
+        var currentFrame = 0;
+
+        function draw() {
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, w, h);
+
+            var fullCycle = cycleLength * 3;
+            var frame = currentFrame % fullCycle;
+            var colorIndex = Math.floor(frame / cycleLength);
+            var frameInCycle = frame % cycleLength;
+            var stepInCycle = Math.min(frameInCycle * stepsPerFrame, totalSteps);
+
+            // Fade phase
+            var fadeAlpha = 1;
+            if (frameInCycle * stepsPerFrame > totalSteps) {
+                var fadeProgress = (frameInCycle - totalSteps / stepsPerFrame) / fadeFrames;
+                fadeAlpha = Math.max(0, 1 - fadeProgress);
+            }
+
+            // Draw maze walls
+            for (var y = 0; y < MAZE_ROWS; y++) {
+                for (var x = 0; x < MAZE_COLS; x++) {
+                    var px = x * cellW + cellW / 2;
+                    var py = y * cellH + cellH / 2;
+
+                    if (sharedGrid[y][x] === 0) {
+                        ctx.fillStyle = '#1e1e1e';
+                        ctx.beginPath();
+                        ctx.arc(px, py, dotR * 0.6, 0, TAU);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // Draw trail
+            ctx.globalAlpha = fadeAlpha;
+            for (var si = 0; si < stepInCycle && si < totalSteps; si++) {
+                var sp = sharedPath[si];
+                ctx.fillStyle = COLORS_800[colorIndex];
+                ctx.beginPath();
+                ctx.arc(sp[0] * cellW + cellW / 2, sp[1] * cellH + cellH / 2, dotR, 0, TAU);
+                ctx.fill();
+            }
+
+            // Leading dot
+            if (stepInCycle > 0 && stepInCycle < totalSteps && fadeAlpha > 0.5) {
+                var head = sharedPath[Math.min(stepInCycle, totalSteps - 1)];
+                ctx.fillStyle = COLORS_400[colorIndex];
+                ctx.beginPath();
+                ctx.arc(head[0] * cellW + cellW / 2, head[1] * cellH + cellH / 2, dotR * 1.6, 0, TAU);
+                ctx.fill();
+
+                var tailLen = 12;
+                for (var ti = Math.max(0, stepInCycle - tailLen); ti < stepInCycle; ti++) {
+                    var tp = sharedPath[ti];
+                    var tAlpha = (ti - (stepInCycle - tailLen)) / tailLen;
+                    ctx.fillStyle = COLORS_600[colorIndex];
+                    ctx.globalAlpha = fadeAlpha * (0.3 + tAlpha * 0.7);
+                    ctx.beginPath();
+                    ctx.arc(tp[0] * cellW + cellW / 2, tp[1] * cellH + cellH / 2, dotR * (0.8 + tAlpha * 0.4), 0, TAU);
+                    ctx.fill();
+                }
+            }
+
+            ctx.globalAlpha = 1;
+            currentFrame++;
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    })();
+
+    // =============================================
+    // OPTION 3: PARTICLE STREAM
+    // Multiple dots flowing through simultaneously
+    // =============================================
+    (function () {
+        var s = setupCanvas('cv3');
+        var ctx = s.ctx, w = s.w, h = s.h;
+
+        var cellW = w / MAZE_COLS;
+        var cellH = h / MAZE_ROWS;
+        var dotR = Math.min(cellW, cellH) * 0.25;
+
+        var totalSteps = sharedPath.length;
+        var streamLength = 30; // number of dots in the stream
+        var streamSpacing = 4; // steps between each dot in the stream
+        var stepsPerFrame = 3;
+        var runLength = totalSteps + streamLength * streamSpacing;
+        var pauseFrames = 40;
+        var cycleLength = Math.ceil(runLength / stepsPerFrame) + pauseFrames;
+        var currentFrame = 0;
+
+        function draw() {
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, w, h);
+
+            var fullCycle = cycleLength * 3;
+            var frame = currentFrame % fullCycle;
+            var colorIndex = Math.floor(frame / cycleLength);
+            var frameInCycle = frame % cycleLength;
+            var leadStep = frameInCycle * stepsPerFrame;
+
+            // Draw maze walls
+            for (var y = 0; y < MAZE_ROWS; y++) {
+                for (var x = 0; x < MAZE_COLS; x++) {
+                    if (sharedGrid[y][x] === 0) {
+                        ctx.fillStyle = '#1e1e1e';
+                        ctx.beginPath();
+                        ctx.arc(x * cellW + cellW / 2, y * cellH + cellH / 2, dotR * 0.6, 0, TAU);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // Draw dim trail behind the stream
+            var trailEnd = Math.max(0, leadStep - streamLength * streamSpacing);
+            for (var si = 0; si < trailEnd && si < totalSteps; si++) {
+                var sp = sharedPath[si];
+                ctx.fillStyle = COLORS_800[colorIndex];
+                ctx.globalAlpha = 0.4;
+                ctx.beginPath();
+                ctx.arc(sp[0] * cellW + cellW / 2, sp[1] * cellH + cellH / 2, dotR * 0.8, 0, TAU);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // Draw the stream of dots
+            for (var di = 0; di < streamLength; di++) {
+                var stepIdx = leadStep - di * streamSpacing;
+                if (stepIdx < 0 || stepIdx >= totalSteps) continue;
+
+                var sp = sharedPath[stepIdx];
+                var progress = 1 - (di / streamLength);
+                var size = dotR * (0.6 + progress * 1.0);
+
+                // Lead dots are brighter
+                if (di < 3) {
+                    ctx.fillStyle = COLORS_400[colorIndex];
+                    ctx.globalAlpha = 1;
+                } else {
+                    ctx.fillStyle = COLORS_600[colorIndex];
+                    ctx.globalAlpha = 0.4 + progress * 0.6;
+                }
+
+                ctx.beginPath();
+                ctx.arc(sp[0] * cellW + cellW / 2, sp[1] * cellH + cellH / 2, size, 0, TAU);
+                ctx.fill();
+            }
+
+            ctx.globalAlpha = 1;
+            currentFrame++;
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    })();
+
+})();
+</script>
+
+</body>
+</html>

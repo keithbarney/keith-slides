@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Options — CS3 Problem</title>
+    <link rel="stylesheet" href="src/assets/main.css">
+    <style>
+        @font-face {
+            font-family: 'Test American Grotesk';
+            src: url('src/assets/fonts/TestAmericanGrotesk-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('src/assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background: var(--ui-bg-default);
+            color: var(--ui-text-default);
+            padding: 48px;
+        }
+
+        .page-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: var(--ui-text-strong);
+            margin-bottom: 8px;
+        }
+
+        .page-description {
+            font-size: var(--font-size-body-xlg);
+            color: var(--ui-text-default);
+            margin-bottom: 48px;
+            max-width: 65ch;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        .option {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+            max-width: calc(50% - 16px);
+        }
+
+        .option-number {
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ui-text-default);
+        }
+
+        .option-title {
+            font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+            font-weight: 500;
+            color: var(--ui-text-strong);
+        }
+
+        .option-description {
+            font-size: var(--font-size-body-sm);
+            color: var(--ui-text-default);
+            line-height: 1.5;
+        }
+
+        .canvas-frame {
+            width: 100%;
+            aspect-ratio: 7 / 8;
+            border: 1px solid var(--ui-border-default);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .canvas-frame canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="page-title">CS3 Problem — Visual Options</h1>
+<p class="page-description">Chart-style progress over time — migration from legacy to Atlas. Light, not visually heavy.</p>
+
+<div class="options-grid">
+
+    <!-- Option 1: Rising Line -->
+    <div class="option">
+        <p class="option-number">Option 1</p>
+        <p class="option-title">Rising Line</p>
+        <p class="option-description">A single dotted curve drawing itself left to right, rising upward. Simple adoption-over-time. The line builds dot by dot and loops.</p>
+        <div class="canvas-frame"><canvas id="cv1"></canvas></div>
+    </div>
+
+    <!-- Option 2: Crossover -->
+    <div class="option">
+        <p class="option-number">Option 2</p>
+        <p class="option-title">Crossover</p>
+        <p class="option-description">Legacy lines fall while the Atlas line rises. The crossover moment is the story — the point where the new system overtakes the old.</p>
+        <div class="canvas-frame"><canvas id="cv2"></canvas></div>
+    </div>
+
+    <!-- Option 3: Stepped Bars -->
+    <div class="option">
+        <p class="option-number">Option 3</p>
+        <p class="option-title">Stepped Bars</p>
+        <p class="option-description">Vertical dot columns that grow taller period by period, each one a quarter of progress. Clean bar chart energy with the dot aesthetic.</p>
+        <div class="canvas-frame"><canvas id="cv3"></canvas></div>
+    </div>
+
+    <!-- Option 4: Area Fill -->
+    <div class="option">
+        <p class="option-number">Option 4</p>
+        <p class="option-title">Area Fill</p>
+        <p class="option-description">A curve that draws and fills beneath itself with scattered dots. The filled area grows over time — cumulative progress made tangible.</p>
+        <div class="canvas-frame"><canvas id="cv4"></canvas></div>
+    </div>
+
+    <!-- Option 5: Staircase -->
+    <div class="option">
+        <p class="option-number">Option 5</p>
+        <p class="option-title">Staircase</p>
+        <p class="option-description">A stepped line that climbs in discrete jumps — each step a migration milestone. Dots trace the path and linger at each plateau.</p>
+        <div class="canvas-frame"><canvas id="cv5"></canvas></div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    var DPR = window.devicePixelRatio || 1;
+    var BG = '#141414';
+    var TAU = Math.PI * 2;
+
+    var BLUE_800 = '#1948a3';
+    var BLUE_400 = '#6daafb';
+    var RED_800 = '#950f22';
+    var RED_400 = '#fc7f79';
+    var AMBER_800 = '#7a4d00';
+    var AMBER_400 = '#df9500';
+    var PURPLE_800 = '#5b21b6';
+    var TEAL_800 = '#065c60';
+    var TEAL_400 = '#07c0ca';
+    var GREEN_400 = '#06c167';
+
+    function hash(x, y, seed) {
+        var v = Math.sin(x * 127.1 + y * 311.7 + seed * 43758.5453) * 43758.5453;
+        return v - Math.floor(v);
+    }
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    function setupCanvas(id) {
+        var canvas = document.getElementById(id);
+        var ctx = canvas.getContext('2d');
+        var parent = canvas.parentElement;
+        var w = parent.clientWidth;
+        var h = parent.clientHeight;
+        canvas.width = w * DPR;
+        canvas.height = h * DPR;
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        return { canvas: canvas, ctx: ctx, w: w, h: h };
+    }
+
+    // Shared chart area with padding
+    function chartArea(w, h) {
+        var pad = { top: h * 0.1, right: w * 0.08, bottom: h * 0.12, left: w * 0.08 };
+        return {
+            x: pad.left, y: pad.top,
+            w: w - pad.left - pad.right,
+            h: h - pad.top - pad.bottom,
+            pad: pad
+        };
+    }
+
+    // Draw subtle axes
+    function drawAxes(ctx, ca, w, h) {
+        ctx.strokeStyle = '#2a2a2a';
+        ctx.globalAlpha = 0.4;
+        ctx.lineWidth = 1;
+        // X axis
+        ctx.beginPath();
+        ctx.moveTo(ca.x, ca.y + ca.h);
+        ctx.lineTo(ca.x + ca.w, ca.y + ca.h);
+        ctx.stroke();
+        // Y axis
+        ctx.beginPath();
+        ctx.moveTo(ca.x, ca.y);
+        ctx.lineTo(ca.x, ca.y + ca.h);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+
+    // =============================================
+    // OPTION 1: RISING LINE
+    // =============================================
+    (function () {
+        var s = setupCanvas('cv1');
+        var ctx = s.ctx, w = s.w, h = s.h;
+        var ca = chartArea(w, h);
+        var startTime = performance.now();
+
+        // S-curve data points
+        var numDots = 30;
+        var points = [];
+        for (var i = 0; i < numDots; i++) {
+            var t = i / (numDots - 1);
+            // S-curve (logistic)
+            var y = 1 / (1 + Math.exp(-10 * (t - 0.45)));
+            points.push({ t: t, y: y });
+        }
+
+        var cycleDuration = 6;
+        var holdDuration = 2;
+        var fullCycle = cycleDuration + holdDuration;
+
+        function draw() {
+            var elapsed = (performance.now() - startTime) * 0.001;
+            var cycleT = elapsed % fullCycle;
+            var drawProgress = clamp(cycleT / cycleDuration, 0, 1);
+            // Ease
+            drawProgress = drawProgress * drawProgress * (3 - 2 * drawProgress);
+            var numVisible = Math.floor(drawProgress * numDots);
+
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, w, h);
+            drawAxes(ctx, ca, w, h);
+
+            // Subtle grid lines
+            for (var g = 0; g <= 4; g++) {
+                var gy = ca.y + ca.h * (1 - g / 4);
+                ctx.strokeStyle = '#1e1e1e';
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.moveTo(ca.x, gy);
+                ctx.lineTo(ca.x + ca.w, gy);
+                ctx.stroke();
+            }
+
+            // Connecting line between visible dots
+            if (numVisible > 1) {
+                ctx.strokeStyle = BLUE_800;
+                ctx.globalAlpha = 0.3;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                for (var i = 0; i < numVisible; i++) {
+                    var px = ca.x + points[i].t * ca.w;
+                    var py = ca.y + ca.h * (1 - points[i].y);
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+            }
+
+            // Dots
+            for (var i = 0; i < numVisible; i++) {
+                var px = ca.x + points[i].t * ca.w;
+                var py = ca.y + ca.h * (1 - points[i].y);
+                var isRecent = i > numVisible - 3;
+
+                ctx.fillStyle = isRecent ? BLUE_400 : BLUE_800;
+                ctx.globalAlpha = isRecent ? 0.9 : 0.6;
+                ctx.beginPath();
+                ctx.arc(px, py, isRecent ? 3.5 : 2.5, 0, TAU);
+                ctx.fill();
+            }
+
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(draw);
+        }
+        draw();
+    })();
+
+    // =============================================
+    // OPTION 2: CROSSOVER
+    // =============================================
+    (function () {
+        var s = setupCanvas('cv2');
+        var ctx = s.ctx, w = s.w, h = s.h;
+        var ca = chartArea(w, h);
+        var startTime = performance.now();
+
+        var numDots = 28;
+        // Atlas rises (S-curve), 3 legacy lines fall
+        function atlasY(t) { return 1 / (1 + Math.exp(-10 * (t - 0.4))); }
+        function legacyY(t, offset) {
+            var base = 1 - 1 / (1 + Math.exp(-8 * (t - 0.35 - offset)));
+            return base * (0.7 + offset);
+        }
+
+        var cycleDuration = 6;
+        var holdDuration = 2.5;
+        var fullCycle = cycleDuration + holdDuration;
+
+        function draw() {
+            var elapsed = (performance.now() - startTime) * 0.001;
+            var cycleT = elapsed % fullCycle;
+            var drawProgress = clamp(cycleT / cycleDuration, 0, 1);
+            drawProgress = drawProgress * drawProgress * (3 - 2 * drawProgress);
+            var numVisible = Math.floor(drawProgress * numDots);
+
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, w, h);
+            drawAxes(ctx, ca, w, h);
+
+            var legacyLines = [
+                { fn: function (t) { return legacyY(t, 0); }, color800: RED_800, color400: RED_400 },
+                { fn: function (t) { return legacyY(t, 0.08); }, color800: AMBER_800, color400: AMBER_400 },
+                { fn: function (t) { return legacyY(t, 0.15); }, color800: PURPLE_800, color400: '#c490f9' }
+            ];
+
+            // Draw legacy lines
+            for (var li = 0; li < legacyLines.length; li++) {
+                var line = legacyLines[li];
+
+                // Connecting line
+                if (numVisible > 1) {
+                    ctx.strokeStyle = line.color800;
+                    ctx.globalAlpha = 0.2;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    for (var i = 0; i < numVisible; i++) {
+                        var t = i / (numDots - 1);
+                        var px = ca.x + t * ca.w;
+                        var py = ca.y + ca.h * (1 - line.fn(t));
+                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+                }
+
+                // Dots (every 3rd to keep it light)
+                for (var i = 0; i < numVisible; i += 3) {
+                    var t = i / (numDots - 1);
+                    var px = ca.x + t * ca.w;
+                    var py = ca.y + ca.h * (1 - line.fn(t));
+                    ctx.fillStyle = line.color800;
+                    ctx.globalAlpha = 0.45;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 2, 0, TAU);
+                    ctx.fill();
+                }
+            }
+
+            // Atlas line
+            if (numVisible > 1) {
+                ctx.strokeStyle = BLUE_800;
+                ctx.globalAlpha = 0.35;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                for (var i = 0; i < numVisible; i++) {
+                    var t = i / (numDots - 1);
+                    var px = ca.x + t * ca.w;
+                    var py = ca.y + ca.h * (1 - atlasY(t));
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+            }
+
+            for (var i = 0; i < numVisible; i++) {
+                var t = i / (numDots - 1);
+                var px = ca.x + t * ca.w;
+                var py = ca.y + ca.h * (1 - atlasY(t));
+                var isRecent = i > numVisible - 3;
+                ctx.fillStyle = isRecent ? BLUE_400 : BLUE_800;
+                ctx.globalAlpha = isRecent ? 0.9 : 0.6;
+                ctx.beginPath();
+                ctx.arc(px, py, isRecent ? 3.5 : 2.5, 0, TAU);
+                ctx.fill();
+            }
+
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(draw);
+        }
+        draw();
+    })();
+
+    // =============================================
+    // OPTION 3: STEPPED BARS
+    // =============================================
+    (function () {
+        var s = setupCanvas('cv3');
+        var ctx = s.ctx, w = s.w, h = s.h;
+        var ca = chartArea(w, h);
+        var startTime = performance.now();
+
+        var numBars = 8;
+        var barGap = ca.w / numBars;
+        var barW = barGap * 0.55;
+        var dotSpacing = 10;
+
+        // Each bar's target height (growing trend with some variation)
+        var barHeights = [];
+        for (var i = 0; i < numBars; i++) {
+            var base = (i + 1) / numBars;
+            var variation = (hash(i, 0, 44) - 0.5) * 0.15;
+            barHeights.push(clamp(base * 0.85 + variation, 0.1, 0.95));
+        }
+
+        var cycleDuration = 5;
+        var holdDuration = 2.5;
+        var fullCycle = cycleDuration + holdDuration;
+
+        function draw() {
+            var elapsed = (performance.now() - startTime) * 0.001;
+            var cycleT = elapsed % fullCycle;
+
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, w, h);
+            drawAxes(ctx, ca, w, h);
+
+            // Subtle horizontal grid
+            for (var g = 1; g <= 4; g++) {
+                var gy = ca.y + ca.h * (1 - g / 4);
+                ctx.strokeStyle = '#1e1e1e';
+                ctx.globalAlpha = 0.25;
+                ctx.beginPath();
+                ctx.moveTo(ca.x, gy);
+                ctx.lineTo(ca.x + ca.w, gy);
+                ctx.stroke();
+            }
+
+            for (var bi = 0; bi < numBars; bi++) {
+                // Staggered reveal
+                var barDelay = bi * 0.08;
+                var barT = clamp((cycleT / cycleDuration - barDelay) / (1 - barDelay), 0, 1);
+                barT = barT * barT * (3 - 2 * barT);
+
+                var bx = ca.x + barGap * (bi + 0.5);
+                var targetH = barHeights[bi] * ca.h;
+                var currentH = barT * targetH;
+                var baseY = ca.y + ca.h;
+
+                var dotsHigh = Math.floor(currentH / dotSpacing);
+                var dotsWide = Math.max(1, Math.floor(barW / dotSpacing));
+
+                for (var row = 0; row < dotsHigh; row++) {
+                    for (var col = 0; col < dotsWide; col++) {
+                        var dx = bx - (dotsWide * dotSpacing) / 2 + col * dotSpacing + dotSpacing / 2;
+                        var dy = baseY - row * dotSpacing - dotSpacing / 2;
+
+                        var isTop = row >= dotsHigh - 2;
+                        ctx.fillStyle = isTop ? BLUE_400 : BLUE_800;
+                        ctx.globalAlpha = isTop ? 0.75 : 0.45;
+                        ctx.beginPath();
+                        ctx.arc(dx, dy, isTop ? 3 : 2.2, 0, TAU);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(draw);
+        }
+        draw();
+    })();
+
+    // =============================================
+    // OPTION 4: AREA FILL
+    // =============================================
+    (function () {
+        var s = setupCanvas('cv4');
+        var ctx = s.ctx, w = s.w, h = s.h;
+        var ca = chartArea(w, h);
+        var startTime = performance.now();
+
+        // S-curve for the top edge
+        var numSegments = 60;
+        function curveY(t) {
+            return 1 / (1 + Math.exp(-10 * (t - 0.42)));
+        }
+
+        // Pre-scatter dots in the area under the curve
+        var dots = [];
+        var dotSpacing = 12;
+        var cols = Math.ceil(ca.w / dotSpacing);
+        var rows = Math.ceil(ca.h / dotSpacing);
+        for (var row = 0; row < rows; row++) {
+            for (var col = 0; col < cols; col++) {
+                var t = col / cols;
+                var maxY = curveY(t);
+                var dotY = 1 - (row + 0.5) / rows; // 0 at bottom, 1 at top
+                if (dotY < maxY) {
+                    // Slight jitter
+                    var jx = (hash(col, row, 11) - 0.5) * dotSpacing * 0.3;
+                    var jy = (hash(col, row, 22) - 0.5) * dotSpacing * 0.3;
+                    dots.push({
+                        x: ca.x + t * ca.w + jx,
+                        y: ca.y + ca.h * (1 - dotY) + jy,
+                        t: t,
+                        depth: dotY / maxY // how deep in the fill (0=bottom, 1=near curve)
+                    });
+                }
+            }
+        }
+
+        var cycleDuration = 6;
+        var holdDuration = 2;
+        var fullCycle = cycleDuration + holdDuration;
+
+        function draw() {
+            var elapsed = (performance.now() - startTime) * 0.001;
+            var cycleT = elapsed % fullCycle;
+            var drawProgress = clamp(cycleT / cycleDuration, 0, 1);
+            drawProgress = drawProgress * drawProgress * (3 - 2 * drawProgress);
+
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, w, h);
+            drawAxes(ctx, ca, w, h);
+
+            // Fill dots
+            for (var i = 0; i < dots.length; i++) {
+                var d = dots[i];
+                if (d.t > drawProgress) continue;
+
+                var age = (drawProgress - d.t) / drawProgress;
+                var nearEdge = clamp(1 - (drawProgress - d.t) * 15, 0, 1);
+
+                if (nearEdge > 0.3) {
+                    ctx.fillStyle = BLUE_400;
+                    ctx.globalAlpha = 0.3 + nearEdge * 0.4;
+                } else {
+                    ctx.fillStyle = BLUE_800;
+                    ctx.globalAlpha = 0.2 + d.depth * 0.15;
+                }
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, nearEdge > 0.3 ? 2.5 : 1.8, 0, TAU);
+                ctx.fill();
+            }
+
+            // Curve line
+            if (drawProgress > 0) {
+                ctx.strokeStyle = BLUE_400;
+                ctx.globalAlpha = 0.5;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                for (var i = 0; i <= numSegments; i++) {
+                    var t = i / numSegments;
+                    if (t > drawProgress) break;
+                    var px = ca.x + t * ca.w;
+                    var py = ca.y + ca.h * (1 - curveY(t));
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+
+                // Leading dot
+                var leadT = Math.min(drawProgress, 1);
+                var lx = ca.x + leadT * ca.w;
+                var ly = ca.y + ca.h * (1 - curveY(leadT));
+                ctx.fillStyle = BLUE_400;
+                ctx.globalAlpha = 0.9;
+                ctx.beginPath();
+                ctx.arc(lx, ly, 4, 0, TAU);
+                ctx.fill();
+            }
+
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(draw);
+        }
+        draw();
+    })();
+
+    // =============================================
+    // OPTION 5: STAIRCASE
+    // =============================================
+    (function () {
+        var s = setupCanvas('cv5');
+        var ctx = s.ctx, w = s.w, h = s.h;
+        var ca = chartArea(w, h);
+        var startTime = performance.now();
+
+        // 6 steps with plateaus
+        var steps = [
+            { start: 0, end: 0.12, y: 0.08 },
+            { start: 0.12, end: 0.25, y: 0.22 },
+            { start: 0.25, end: 0.42, y: 0.38 },
+            { start: 0.42, end: 0.58, y: 0.55 },
+            { start: 0.58, end: 0.75, y: 0.72 },
+            { start: 0.75, end: 1.0, y: 0.9 }
+        ];
+
+        var cycleDuration = 7;
+        var holdDuration = 2;
+        var fullCycle = cycleDuration + holdDuration;
+
+        function draw() {
+            var elapsed = (performance.now() - startTime) * 0.001;
+            var cycleT = elapsed % fullCycle;
+            var drawProgress = clamp(cycleT / cycleDuration, 0, 1);
+            drawProgress = drawProgress * drawProgress * (3 - 2 * drawProgress);
+
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, w, h);
+            drawAxes(ctx, ca, w, h);
+
+            // Subtle target lines (ghost of where steps will be)
+            for (var si = 0; si < steps.length; si++) {
+                var step = steps[si];
+                var sy = ca.y + ca.h * (1 - step.y);
+                ctx.strokeStyle = '#1e1e1e';
+                ctx.globalAlpha = 0.2;
+                ctx.setLineDash([2, 6]);
+                ctx.beginPath();
+                ctx.moveTo(ca.x + step.start * ca.w, sy);
+                ctx.lineTo(ca.x + step.end * ca.w, sy);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // Draw revealed staircase
+            var prevY = ca.y + ca.h;
+            for (var si = 0; si < steps.length; si++) {
+                var step = steps[si];
+                var stepRevealed = clamp((drawProgress - step.start) / (step.end - step.start), 0, 1);
+                if (stepRevealed <= 0) break;
+
+                var sx1 = ca.x + step.start * ca.w;
+                var sx2 = ca.x + lerp(step.start, step.end, stepRevealed) * ca.w;
+                var sy = ca.y + ca.h * (1 - step.y);
+
+                // Vertical riser
+                ctx.strokeStyle = BLUE_800;
+                ctx.globalAlpha = 0.4;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(sx1, prevY);
+                ctx.lineTo(sx1, sy);
+                ctx.stroke();
+
+                // Horizontal plateau
+                ctx.strokeStyle = stepRevealed < 1 ? BLUE_400 : BLUE_800;
+                ctx.globalAlpha = stepRevealed < 1 ? 0.6 : 0.4;
+                ctx.beginPath();
+                ctx.moveTo(sx1, sy);
+                ctx.lineTo(sx2, sy);
+                ctx.stroke();
+
+                // Dots along plateau
+                var plateauLen = sx2 - sx1;
+                var numDots = Math.max(1, Math.floor(plateauLen / 18));
+                for (var di = 0; di < numDots; di++) {
+                    var dx = sx1 + (di + 0.5) / numDots * plateauLen;
+                    var isLeading = di === numDots - 1 && stepRevealed < 1;
+                    ctx.fillStyle = isLeading ? BLUE_400 : BLUE_800;
+                    ctx.globalAlpha = isLeading ? 0.9 : 0.5;
+                    ctx.beginPath();
+                    ctx.arc(dx, sy, isLeading ? 3.5 : 2.2, 0, TAU);
+                    ctx.fill();
+                }
+
+                // Milestone dot at step corner
+                ctx.fillStyle = BLUE_400;
+                ctx.globalAlpha = 0.7;
+                ctx.beginPath();
+                ctx.arc(sx1, sy, 3, 0, TAU);
+                ctx.fill();
+
+                prevY = sy;
+            }
+
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(draw);
+        }
+        draw();
+    })();
+
+})();
+</script>
+
+</body>
+</html>

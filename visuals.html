@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Options — CS1 Problem</title>
+    <link rel="stylesheet" href="src/assets/main.css">
+    <style>
+        @font-face {
+            font-family: 'Test American Grotesk';
+            src: url('src/assets/fonts/TestAmericanGrotesk-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('src/assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background: var(--ui-bg-default);
+            color: var(--ui-text-default);
+            padding: 48px;
+        }
+
+        .page-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: var(--ui-text-strong);
+            margin-bottom: 8px;
+        }
+
+        .page-description {
+            font-size: var(--font-size-body-xlg);
+            color: var(--ui-text-default);
+            margin-bottom: 48px;
+            max-width: 65ch;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        .option {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+            max-width: calc(50% - 16px);
+        }
+
+        .option-number {
+            font-family: var(--font-secondary);
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--ui-text-default);
+        }
+
+        .option-title {
+            font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+            font-weight: 500;
+            color: var(--ui-text-strong);
+        }
+
+        .option-description {
+            font-size: var(--font-size-body-sm);
+            color: var(--ui-text-default);
+            line-height: 1.5;
+        }
+
+        .canvas-frame {
+            width: 100%;
+            aspect-ratio: 7 / 8;
+            border: 1px solid var(--ui-border-default);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .canvas-frame canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="page-title">CS1 Problem — Visual Options</h1>
+<p class="page-description">"No system. No communication." — Teams building patterns in their own sandboxes.</p>
+
+<div class="options-grid">
+
+    <!-- Option 1 -->
+    <div class="option">
+        <p class="option-number">Option 1</p>
+        <p class="option-title">Sandboxes</p>
+        <p class="option-description">4 rectangular regions like separate Figma canvases. Each has its own dot grid with different spacing and size. Dark voids between — no connection.</p>
+        <div class="canvas-frame">
+            <canvas id="c1"></canvas>
+        </div>
+    </div>
+
+    <!-- Option 2 -->
+    <div class="option">
+        <p class="option-number">Option 2</p>
+        <p class="option-title">Diverging Forks</p>
+        <p class="option-description">One grid at the top splits into 3 branches going down, each mutating. Same origin, different outcomes.</p>
+        <div class="canvas-frame">
+            <canvas id="c2"></canvas>
+        </div>
+    </div>
+
+    <!-- Option 3 -->
+    <div class="option">
+        <p class="option-number">Option 3</p>
+        <p class="option-title">Archipelago</p>
+        <p class="option-description">Organic island-shaped clusters. Each island is internally consistent but different from neighbors. Dark ocean between.</p>
+        <div class="canvas-frame">
+            <canvas id="c3"></canvas>
+        </div>
+    </div>
+
+    <!-- Option 4 -->
+    <div class="option">
+        <p class="option-number">Option 4</p>
+        <p class="option-title">Same But Different</p>
+        <p class="option-description">4 columns side by side — each a dot grid attempting the same pattern but with visible differences in size, spacing, alignment.</p>
+        <div class="canvas-frame">
+            <canvas id="c4"></canvas>
+        </div>
+    </div>
+
+    <!-- Option 5 -->
+    <div class="option">
+        <p class="option-number">Option 5</p>
+        <p class="option-title">Walled Gardens</p>
+        <p class="option-description">Orderly grids inside visible boundary rings. Each garden is self-consistent but incompatible. Dots stop hard at each wall.</p>
+        <div class="canvas-frame">
+            <canvas id="c5"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var DPR = window.devicePixelRatio || 1;
+    var TAU = Math.PI * 2;
+    var DOT = '#555555';
+    var DOT_DIM = '#333333';
+    var BG = '#141414';
+    var BORDER = '#2a2a2a';
+
+    function hash(x, y, seed) {
+        var v = Math.sin(x * 127.1 + y * 311.7 + seed * 43758.5453) * 43758.5453;
+        return v - Math.floor(v);
+    }
+
+    function noise2d(px, py, seed) {
+        var ix = Math.floor(px), iy = Math.floor(py);
+        var fx = px - ix, fy = py - iy;
+        fx = fx * fx * (3 - 2 * fx);
+        fy = fy * fy * (3 - 2 * fy);
+        var a = hash(ix, iy, seed);
+        var b = hash(ix + 1, iy, seed);
+        var c = hash(ix, iy + 1, seed);
+        var d = hash(ix + 1, iy + 1, seed);
+        return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+    }
+
+    function fbm(px, py, seed, octaves) {
+        var val = 0, amp = 0.5, freq = 1;
+        for (var i = 0; i < octaves; i++) {
+            val += noise2d(px * freq, py * freq, seed + i * 100) * amp;
+            amp *= 0.5;
+            freq *= 2;
+        }
+        return val;
+    }
+
+    function setup(id) {
+        var canvas = document.getElementById(id);
+        var frame = canvas.parentElement;
+        var w = frame.clientWidth;
+        var h = frame.clientHeight;
+        canvas.width = w * DPR;
+        canvas.height = h * DPR;
+        var ctx = canvas.getContext('2d');
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        ctx.fillStyle = BG;
+        ctx.fillRect(0, 0, w, h);
+        return { ctx: ctx, w: w, h: h };
+    }
+
+    // ========== OPTION 1: SANDBOXES ==========
+    // 4 rectangular canvases, each with its own grid system, dark gaps between
+    (function () {
+        var s = setup('c1');
+        var ctx = s.ctx, w = s.w, h = s.h;
+        var gap = Math.max(20, w * 0.06);
+        var pad = Math.max(16, w * 0.04);
+
+        var zones = [
+            // top-left: tight small dots
+            { x: pad, y: pad, w: (w - gap) / 2 - pad, h: (h - gap) / 2 - pad, grid: 7, r: 1.5 },
+            // top-right: loose large dots
+            { x: (w + gap) / 2, y: pad, w: (w - gap) / 2 - pad, h: (h - gap) / 2 - pad, grid: 16, r: 3.5 },
+            // bottom-left: medium, slightly rotated feel via offset rows
+            { x: pad, y: (h + gap) / 2, w: (w - gap) / 2 - pad, h: (h - gap) / 2 - pad, grid: 11, r: 2.5 },
+            // bottom-right: dense tiny dots
+            { x: (w + gap) / 2, y: (h + gap) / 2, w: (w - gap) / 2 - pad, h: (h - gap) / 2 - pad, grid: 5, r: 1.0 }
+        ];
+
+        for (var z = 0; z < zones.length; z++) {
+            var zone = zones[z];
+
+            // Draw subtle border for the sandbox
+            ctx.strokeStyle = BORDER;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(zone.x, zone.y, zone.w, zone.h);
+
+            // Fill dots
+            ctx.fillStyle = DOT;
+            var innerPad = 6;
+            var cols = Math.floor((zone.w - innerPad * 2) / zone.grid);
+            var rows = Math.floor((zone.h - innerPad * 2) / zone.grid);
+
+            for (var row = 0; row < rows; row++) {
+                for (var col = 0; col < cols; col++) {
+                    var x = zone.x + innerPad + col * zone.grid + zone.grid / 2;
+                    var y = zone.y + innerPad + row * zone.grid + zone.grid / 2;
+
+                    // Offset every other row for zones 2 (bottom-left)
+                    if (z === 2 && row % 2 === 1) {
+                        x += zone.grid * 0.5;
+                    }
+
+                    var r = zone.r * (0.8 + hash(col, row, z * 13 + 7) * 0.4);
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, TAU);
+                    ctx.fill();
+                }
+            }
+        }
+    })();
+
+    // ========== OPTION 2: DIVERGING FORKS ==========
+    // Unified grid at top, splits into 3 branches that each mutate
+    (function () {
+        var s = setup('c2');
+        var ctx = s.ctx, w = s.w, h = s.h;
+        var grid = 10;
+        var baseR = grid * 0.3;
+        var cols = Math.ceil(w / grid);
+        var rows = Math.ceil(h / grid);
+        var splitStart = Math.floor(rows * 0.22);
+        var forkGap = Math.floor(cols * 0.03);
+
+        // 3 fork regions (column ranges)
+        var forkCols = Math.floor((cols - forkGap * 2) / 3);
+        var forks = [
+            { startCol: 0, endCol: forkCols, gridMult: 1.0, rMult: 1.4, drift: 0 },
+            { startCol: forkCols + forkGap, endCol: forkCols * 2 + forkGap, gridMult: 1.0, rMult: 0.6, drift: 0 },
+            { startCol: forkCols * 2 + forkGap * 2, endCol: cols, gridMult: 1.0, rMult: 1.0, drift: 1 }
+        ];
+
+        ctx.fillStyle = DOT;
+
+        for (var row = 0; row < rows; row++) {
+            for (var col = 0; col < cols; col++) {
+                var x = col * grid + grid / 2;
+                var y = row * grid + grid / 2;
+
+                if (row < splitStart) {
+                    // Unified section
+                    var r = baseR;
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, TAU);
+                    ctx.fill();
+                } else {
+                    // Forked section — find which fork
+                    var inFork = false;
+                    for (var f = 0; f < forks.length; f++) {
+                        var fork = forks[f];
+                        if (col >= fork.startCol && col < fork.endCol) {
+                            inFork = true;
+                            var progress = (row - splitStart) / (rows - splitStart);
+                            var r = baseR * (fork.rMult + (fork.rMult - 1) * progress * 0.5);
+
+                            var ox = 0, oy = 0;
+                            if (fork.drift) {
+                                ox = (hash(col, row, 55) - 0.5) * grid * progress * 1.5;
+                                oy = (hash(col, row, 66) - 0.5) * grid * progress * 1.5;
+                            }
+
+                            if (r < 0.3) continue;
+                            ctx.beginPath();
+                            ctx.arc(x + ox, y + oy, Math.max(0.5, r), 0, TAU);
+                            ctx.fill();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Draw fork divider lines
+        ctx.strokeStyle = BORDER;
+        ctx.lineWidth = 1;
+        for (var f = 0; f < forks.length; f++) {
+            var fork = forks[f];
+            var lx = fork.startCol * grid;
+            var rx = fork.endCol * grid;
+            var sy = splitStart * grid;
+            // Vertical lines from split point down
+            if (f > 0) {
+                ctx.beginPath();
+                ctx.moveTo(lx - forkGap * grid / 2, sy);
+                ctx.lineTo(lx - forkGap * grid / 2, h);
+                ctx.stroke();
+            }
+        }
+
+        // Horizontal line at split point
+        ctx.beginPath();
+        ctx.moveTo(0, splitStart * grid);
+        ctx.lineTo(w, splitStart * grid);
+        ctx.stroke();
+    })();
+
+    // ========== OPTION 3: ARCHIPELAGO ==========
+    // Organic island clusters, each with own dot characteristics
+    (function () {
+        var s = setup('c3');
+        var ctx = s.ctx, w = s.w, h = s.h;
+        var grid = 8;
+        var cols = Math.ceil(w / grid);
+        var rows = Math.ceil(h / grid);
+
+        // Define island centers and properties
+        var islands = [
+            { cx: 0.2, cy: 0.18, radius: 0.18, grid: 8, r: 2.0, seed: 10 },
+            { cx: 0.72, cy: 0.15, radius: 0.15, grid: 10, r: 2.8, seed: 20 },
+            { cx: 0.15, cy: 0.6, radius: 0.16, grid: 6, r: 1.4, seed: 30 },
+            { cx: 0.55, cy: 0.52, radius: 0.2, grid: 12, r: 3.2, seed: 40 },
+            { cx: 0.82, cy: 0.72, radius: 0.14, grid: 7, r: 1.8, seed: 50 },
+            { cx: 0.38, cy: 0.85, radius: 0.12, grid: 9, r: 2.2, seed: 60 }
+        ];
+
+        for (var i = 0; i < islands.length; i++) {
+            var island = islands[i];
+            var icx = island.cx * w;
+            var icy = island.cy * h;
+            var irad = island.radius * Math.min(w, h);
+            var igrid = island.grid;
+            var iCols = Math.ceil(irad * 2 / igrid);
+            var iRows = Math.ceil(irad * 2 / igrid);
+
+            ctx.fillStyle = DOT;
+
+            for (var row = 0; row < iRows; row++) {
+                for (var col = 0; col < iCols; col++) {
+                    var x = (icx - irad) + col * igrid + igrid / 2;
+                    var y = (icy - irad) + row * igrid + igrid / 2;
+
+                    // Distance from island center
+                    var dx = x - icx, dy = y - icy;
+                    var dist = Math.sqrt(dx * dx + dy * dy);
+
+                    // Organic edge using noise
+                    var angle = Math.atan2(dy, dx);
+                    var edgeNoise = fbm(angle * 2, i * 10, island.seed, 3);
+                    var edgeRadius = irad * (0.7 + edgeNoise * 0.6);
+
+                    if (dist > edgeRadius) continue;
+
+                    // Fade at edges
+                    var fade = 1 - Math.pow(dist / edgeRadius, 3);
+                    var r = island.r * fade;
+
+                    if (r < 0.4) continue;
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, TAU);
+                    ctx.fill();
+                }
+            }
+        }
+    })();
+
+    // ========== OPTION 4: SAME BUT DIFFERENT ==========
+    // 4 vertical columns, each attempting the same grid but with visible differences
+    (function () {
+        var s = setup('c4');
+        var ctx = s.ctx, w = s.w, h = s.h;
+        var colCount = 4;
+        var colGap = Math.max(12, w * 0.035);
+        var colPad = Math.max(16, w * 0.04);
+        var colWidth = (w - colPad * 2 - colGap * (colCount - 1)) / colCount;
+        var topPad = Math.max(16, h * 0.04);
+        var colHeight = h - topPad * 2;
+
+        // Each column: same concept (grid of dots) but different execution
+        var columns = [
+            { grid: 10, r: 2.5, offsetRow: false, label: 'Team A' },
+            { grid: 10, r: 1.5, offsetRow: false, label: 'Team B' },   // smaller dots
+            { grid: 14, r: 2.5, offsetRow: false, label: 'Team C' },   // wider spacing
+            { grid: 10, r: 2.5, offsetRow: true, label: 'Team D' }     // offset rows (honeycomb)
+        ];
+
+        for (var c = 0; c < columns.length; c++) {
+            var col = columns[c];
+            var cx = colPad + c * (colWidth + colGap);
+
+            // Column border
+            ctx.strokeStyle = BORDER;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(cx, topPad, colWidth, colHeight);
+
+            // Column label
+            ctx.fillStyle = DOT_DIM;
+            ctx.font = '10px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(col.label, cx + colWidth / 2, topPad - 6);
+
+            // Dots
+            ctx.fillStyle = DOT;
+            var innerPad = 8;
+            var gridCols = Math.floor((colWidth - innerPad * 2) / col.grid);
+            var gridRows = Math.floor((colHeight - innerPad * 2) / col.grid);
+
+            for (var row = 0; row < gridRows; row++) {
+                for (var gc = 0; gc < gridCols; gc++) {
+                    var x = cx + innerPad + gc * col.grid + col.grid / 2;
+                    var y = topPad + innerPad + row * col.grid + col.grid / 2;
+
+                    if (col.offsetRow && row % 2 === 1) {
+                        x += col.grid * 0.5;
+                    }
+
+                    var r = col.r * (0.85 + hash(gc, row, c * 17) * 0.3);
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, TAU);
+                    ctx.fill();
+                }
+            }
+        }
+    })();
+
+    // ========== OPTION 5: WALLED GARDENS ==========
+    // Circular/rounded boundaries with orderly grids inside, nothing between
+    (function () {
+        var s = setup('c5');
+        var ctx = s.ctx, w = s.w, h = s.h;
+
+        var gardens = [
+            { cx: 0.25, cy: 0.25, r: 0.19, grid: 8,  dotR: 1.8, seed: 11 },
+            { cx: 0.72, cy: 0.2,  r: 0.16, grid: 12, dotR: 2.8, seed: 22 },
+            { cx: 0.18, cy: 0.68, r: 0.15, grid: 6,  dotR: 1.2, seed: 33 },
+            { cx: 0.58, cy: 0.58, r: 0.22, grid: 10, dotR: 2.2, seed: 44 },
+            { cx: 0.85, cy: 0.75, r: 0.13, grid: 7,  dotR: 1.6, seed: 55 }
+        ];
+
+        for (var g = 0; g < gardens.length; g++) {
+            var garden = gardens[g];
+            var gcx = garden.cx * w;
+            var gcy = garden.cy * h;
+            var grad = garden.r * Math.min(w, h);
+
+            // Draw wall (circle boundary)
+            ctx.strokeStyle = BORDER;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(gcx, gcy, grad, 0, TAU);
+            ctx.stroke();
+
+            // Fill with grid — clipped to circle
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(gcx, gcy, grad - 2, 0, TAU);
+            ctx.clip();
+
+            ctx.fillStyle = DOT;
+            var igrid = garden.grid;
+            var startX = gcx - grad;
+            var startY = gcy - grad;
+            var endX = gcx + grad;
+            var endY = gcy + grad;
+
+            var gridCols = Math.ceil((endX - startX) / igrid);
+            var gridRows = Math.ceil((endY - startY) / igrid);
+
+            for (var row = 0; row < gridRows; row++) {
+                for (var col = 0; col < gridCols; col++) {
+                    var x = startX + col * igrid + igrid / 2;
+                    var y = startY + row * igrid + igrid / 2;
+
+                    var dx = x - gcx, dy = y - gcy;
+                    if (dx * dx + dy * dy > (grad - 4) * (grad - 4)) continue;
+
+                    var r = garden.dotR * (0.8 + hash(col, row, garden.seed) * 0.4);
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, TAU);
+                    ctx.fill();
+                }
+            }
+
+            ctx.restore();
+        }
+    })();
+
+})();
+</script>
+
+</body>
+</html>
