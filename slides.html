@@ -1702,77 +1702,134 @@
             var BG = '#141414';
             var TAU = Math.PI * 2;
 
-            var BLUE_800 = '#1948a3';
-            var BLUE_400 = '#6daafb';
-            var RED_800 = '#950f22';
-            var AMBER_800 = '#7a4d00';
-            var PURPLE_800 = '#5b21b6';
-
+            // Domain team colors — product teams
+            var TEAM_COLORS = [
+                { dark: '#950f22', bright: '#fc7f79' },  // Marketplace — red
+                { dark: '#7a4d00', bright: '#df9500' },  // Credit — amber
+                { dark: '#0d572d', bright: '#06c167' },  // Account — green
+                { dark: '#1a3a8a', bright: '#5b8def' },  // Analytics — blue
+                { dark: '#6b2180', bright: '#c56cf0' },  // Identity — purple
+                { dark: '#0d5959', bright: '#00b8a9' },  // Compliance — teal
+            ];
             function hash(x, y, seed) {
                 var v = Math.sin(x * 127.1 + y * 311.7 + seed * 43758.5453) * 43758.5453;
                 return v - Math.floor(v);
             }
-            function noise2d(px, py, seed) {
-                var ix = Math.floor(px), iy = Math.floor(py);
-                var fx = px - ix, fy = py - iy;
-                fx = fx * fx * (3 - 2 * fx);
-                fy = fy * fy * (3 - 2 * fy);
-                var a = hash(ix, iy, seed);
-                var b = hash(ix + 1, iy, seed);
-                var c = hash(ix, iy + 1, seed);
-                var d = hash(ix + 1, iy + 1, seed);
-                return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
-            }
-            function fbm(px, py, seed, oct) {
-                var val = 0, amp = 0.5, freq = 1;
-                for (var i = 0; i < oct; i++) {
-                    val += amp * noise2d(px * freq, py * freq, seed + i * 31);
-                    amp *= 0.5; freq *= 2;
-                }
-                return val;
-            }
             function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function easeInOut(t) { return t * t * (3 - 2 * t); }
 
-            var P = { speed: 6, hold: 2, dotSize: 1.8, fillAlpha: 0.2, curveAlpha: 0.5 };
+            function makeDot(i, ti, freqRange, sizeRange, accentThresh, idx) {
+                return {
+                    radius: hash(i, ti, 13) * 0.14 + 0.03,
+                    phaseX: hash(i, ti, 19) * TAU,
+                    phaseY: hash(i, ti, 23) * TAU,
+                    freqX: freqRange[0] + hash(i, ti, 29) * freqRange[1],
+                    freqY: freqRange[0] + hash(i, ti, 31) * freqRange[1],
+                    sizeMult: sizeRange[0] + hash(i, ti, 41) * sizeRange[1],
+                    accent: hash(i * 7, ti * 13, 44) < accentThresh,
+                    id: idx,
+                };
+            }
+
+            var P = { cycleDuration: 6, holdEnd: 2, dotSize: 1.1, chaos: 1.7, orbitSpeed: 0.5, transitTime: 0.0044, domainSize: 0.8, atlasSize: 1 };
 
             var canvas = document.getElementById('cs3-visual');
             var ctx = canvas.getContext('2d');
-            var w, h, ca, dots, startTime;
+            var w, h, startTime;
 
-            // S-curve for the top edge
-            function curveY(t) {
-                return 1 / (1 + Math.exp(-10 * (t - 0.42)));
-            }
+            var TEAM_ANCHORS = [
+                { x: 0.50, y: 0.12 },  // top
+                { x: 0.82, y: 0.30 },  // top-right
+                { x: 0.82, y: 0.66 },  // bottom-right
+                { x: 0.50, y: 0.84 },  // bottom
+                { x: 0.18, y: 0.66 },  // bottom-left
+                { x: 0.18, y: 0.30 },  // top-left
+            ];
+            var ATLAS_ANCHOR = { x: 0.50, y: 0.48 };
 
-            function chartArea() {
-                var pad = { top: h * 0.1, right: w * 0.08, bottom: h * 0.12, left: w * 0.08 };
-                return { x: pad.left, y: pad.top, w: w - pad.left - pad.right, h: h - pad.top - pad.bottom };
-            }
+            var GLOBE_R = 0.16;
+            var DOTS_PER_TEAM = 90;
+            var NUM_TEAMS = 6;
+            var ATLAS_COUNT = 200;
+            var EMISSARIES_PER_TEAM = Math.round(DOTS_PER_TEAM * 0.3);
 
-            function buildDots() {
-                dots = [];
-                var dotSpacing = 12;
-                var cols = Math.ceil(ca.w / dotSpacing);
-                var rows = Math.ceil(ca.h / dotSpacing);
-                var libColors = [RED_800, AMBER_800, PURPLE_800];
-                for (var row = 0; row < rows; row++) {
-                    for (var col = 0; col < cols; col++) {
-                        var t = col / cols;
-                        var maxY = curveY(t);
-                        var dotY = 1 - (row + 0.5) / rows;
-                        if (dotY < maxY) {
-                            var jx = (hash(col, row, 11) - 0.5) * dotSpacing * 0.3;
-                            var jy = (hash(col, row, 22) - 0.5) * dotSpacing * 0.3;
-                            dots.push({
-                                x: ca.x + t * ca.w + jx,
-                                y: ca.y + ca.h * (1 - dotY) + jy,
-                                t: t,
-                                depth: dotY / maxY,
-                                lib: Math.floor(hash(col, row, 33) * 3),
-                                libColor: libColors[Math.floor(hash(col, row, 33) * 3)]
-                            });
-                        }
+            var domainDots = [];
+            var atlasDots = [];
+            var emissaryDots = [];
+
+            // Assign concentric ring positions to n dots within a given radius
+            function assignRingPositions(dots, startIdx, count, maxRadius) {
+                var rings = Math.ceil(Math.sqrt(count / 3));
+                var placed = 0;
+                for (var ring = 0; ring < rings && placed < count; ring++) {
+                    var r = maxRadius * (ring + 1) / rings;
+                    var dotsOnRing = Math.min(Math.round(TAU * r / (maxRadius / rings * 0.9)), count - placed);
+                    if (ring === rings - 1) dotsOnRing = count - placed;
+                    for (var j = 0; j < dotsOnRing && placed < count; j++) {
+                        var angle = (j / dotsOnRing) * TAU;
+                        dots[startIdx + placed].targetX = Math.cos(angle) * r;
+                        dots[startIdx + placed].targetY = Math.sin(angle) * r;
+                        placed++;
                     }
+                }
+            }
+
+            function initDots() {
+                domainDots = [];
+                atlasDots = [];
+                emissaryDots = [];
+                var idx = 0;
+
+                for (var ti = 0; ti < NUM_TEAMS; ti++) {
+                    var start = ti * DOTS_PER_TEAM;
+                    for (var di = 0; di < DOTS_PER_TEAM; di++) {
+                        var dot = makeDot(di, ti, [0.5, 2.5], [0.6, 0.8], 0.12, idx++);
+                        dot.team = ti;
+                        domainDots.push(dot);
+                    }
+                    assignRingPositions(domainDots, start, DOTS_PER_TEAM, 0.11);
+                }
+
+                // Atlas dots placed on globe wireframe (lat/lon lines)
+                var LAT_LINES = 5;
+                var LON_LINES = 8;
+                var DOTS_PER_LAT = 20;
+                var DOTS_PER_LON = 12;
+                var totalGlobe = LAT_LINES * DOTS_PER_LAT + LON_LINES * DOTS_PER_LON;
+                var gi = 0;
+                for (var lat = 0; lat < LAT_LINES; lat++) {
+                    var phi = -Math.PI / 2 + Math.PI * (lat + 1) / (LAT_LINES + 1);
+                    var ringR = Math.cos(phi) * GLOBE_R;
+                    var y3 = Math.sin(phi) * GLOBE_R;
+                    for (var di = 0; di < DOTS_PER_LAT; di++) {
+                        var theta = (di / DOTS_PER_LAT) * TAU;
+                        atlasDots.push({ sx: Math.cos(theta) * ringR, sy: y3, sz: Math.sin(theta) * ringR,
+                            sizeMult: 0.6 + hash(gi, 99, 41) * 0.8, accent: hash(gi * 7, 99, 44) < 0.12, appearAt: (gi / totalGlobe) * 0.7, id: idx++ });
+                        gi++;
+                    }
+                }
+                for (var lon = 0; lon < LON_LINES; lon++) {
+                    var theta = (lon / LON_LINES) * Math.PI;
+                    for (var di = 0; di < DOTS_PER_LON; di++) {
+                        var phi = -Math.PI / 2 + (di / (DOTS_PER_LON - 1)) * Math.PI;
+                        atlasDots.push({ sx: Math.cos(phi) * Math.cos(theta) * GLOBE_R, sy: Math.sin(phi) * GLOBE_R,
+                            sz: Math.cos(phi) * Math.sin(theta) * GLOBE_R,
+                            sizeMult: 0.6 + hash(gi, 99, 41) * 0.8, accent: hash(gi * 7, 99, 44) < 0.12, appearAt: (gi / totalGlobe) * 0.7, id: idx++ });
+                        gi++;
+                    }
+                }
+                ATLAS_COUNT = atlasDots.length;
+
+                for (var ti = 0; ti < NUM_TEAMS; ti++) {
+                    var start = ti * EMISSARIES_PER_TEAM;
+                    for (var ei = 0; ei < EMISSARIES_PER_TEAM; ei++) {
+                        var dot = makeDot(ei + 200, ti, [0.5, 2.5], [0.6, 0.8], 0.15, idx++);
+                        dot.team = ti;
+                        dot.departAt = 0.08 + (ei / EMISSARIES_PER_TEAM) * 0.57;
+                        emissaryDots.push(dot);
+                    }
+                    assignRingPositions(emissaryDots, start, EMISSARIES_PER_TEAM, 0.11);
                 }
             }
 
@@ -1782,83 +1839,161 @@
                 canvas.width = w * DPR;
                 canvas.height = h * DPR;
                 ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-                ca = chartArea();
-                buildDots();
-            }
-
-            function drawAxes() {
-                ctx.strokeStyle = '#2a2a2a';
-                ctx.globalAlpha = 0.4;
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(ca.x, ca.y + ca.h);
-                ctx.lineTo(ca.x + ca.w, ca.y + ca.h);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(ca.x, ca.y);
-                ctx.lineTo(ca.x, ca.y + ca.h);
-                ctx.stroke();
-                ctx.globalAlpha = 1;
             }
 
             function draw() {
-                if (!startTime) startTime = performance.now();
+                if (!startTime) { startTime = performance.now(); initDots(); }
                 var elapsed = (performance.now() - startTime) * 0.001;
-                var fullCycle = P.speed + P.hold;
+                var fadeOut = 1.5;
+                var fullCycle = P.cycleDuration + P.holdEnd + fadeOut;
                 var cycleT = elapsed % fullCycle;
-                var drawProgress = clamp(cycleT / P.speed, 0, 1);
-                drawProgress = drawProgress * drawProgress * (3 - 2 * drawProgress);
+                var progress;
+                if (cycleT < P.cycleDuration) {
+                    progress = cycleT / P.cycleDuration;
+                } else if (cycleT < P.cycleDuration + P.holdEnd) {
+                    progress = 1;
+                } else {
+                    progress = 1 - easeInOut((cycleT - P.cycleDuration - P.holdEnd) / fadeOut);
+                }
 
                 ctx.fillStyle = BG;
                 ctx.fillRect(0, 0, w, h);
-                drawAxes();
 
-                // Fill dots
-                for (var i = 0; i < dots.length; i++) {
-                    var d = dots[i];
-                    if (d.t > drawProgress) continue;
+                // Smooth formation factor driven directly by progress
+                var calmFactor = easeInOut(progress);
+                var syncPulse = Math.sin(elapsed * 2.5) * 0.5 + 0.5;
 
-                    var nearEdge = clamp(1 - (drawProgress - d.t) * 15, 0, 1);
+                // --- Hub-spoke dot streams ---
+                var acx = ATLAS_ANCHOR.x * w;
+                var acy = ATLAS_ANCHOR.y * h;
+                for (var ti = 0; ti < NUM_TEAMS; ti++) {
+                    var tcx = TEAM_ANCHORS[ti].x * w;
+                    var tcy = TEAM_ANCHORS[ti].y * h;
+                    var lineStrength = calmFactor;
 
-                    if (nearEdge > 0.3) {
-                        ctx.fillStyle = d.libColor;
-                        ctx.globalAlpha = 0.5 + nearEdge * 0.5;
+                    var dx = tcx - acx;
+                    var dy = tcy - acy;
+                    var lineLen = Math.sqrt(dx * dx + dy * dy);
+                    var dotSpacing = 12;
+                    var numLineDots = Math.floor(lineLen / dotSpacing);
+                    var marchOffset = (elapsed * 20) % dotSpacing;
+
+                    // Perpendicular vector for organic wobble
+                    var nx = -dy / lineLen;
+                    var ny = dx / lineLen;
+                    for (var li = 0; li < numLineDots; li++) {
+                        var along = (li * dotSpacing + marchOffset) / lineLen;
+                        if (along > 1) continue;
+                        // Organic wobble: position-based so it moves with the dot
+                        var posKey = along * 20 + ti * 7;
+                        var wobble = Math.sin(posKey * 3.7) * 5 + Math.sin(posKey * 1.3 + elapsed * 0.5) * 3;
+                        var lx = lerp(acx, tcx, along) + nx * wobble;
+                        var ly = lerp(acy, tcy, along) + ny * wobble;
+                        var edgeFade = clamp(Math.min(along, 1 - along) * 5, 0, 1);
+                        var dotR = 0.6 + (Math.sin(posKey * 5.1) * 0.5 + 0.5) * 0.8;
+                        var brightT = Math.sin(posKey * 2.3) * 0.5 + 0.5;
+                        var bright = Math.round(153 + brightT * 102);
+                        ctx.fillStyle = 'rgb(' + bright + ',' + bright + ',' + bright + ')';
+                        ctx.globalAlpha = (0.08 + lineStrength * (0.15 + brightT * 0.35)) * edgeFade;
                         ctx.beginPath();
-                        ctx.arc(d.x, d.y, P.dotSize + nearEdge * 1.0, 0, TAU);
-                        ctx.fill();
-                    } else {
-                        ctx.fillStyle = BLUE_800;
-                        ctx.globalAlpha = P.fillAlpha + d.depth * 0.15;
-                        ctx.beginPath();
-                        ctx.arc(d.x, d.y, P.dotSize, 0, TAU);
+                        ctx.arc(lx, ly, dotR, 0, TAU);
                         ctx.fill();
                     }
                 }
 
-                // Curve line
-                if (drawProgress > 0) {
-                    ctx.strokeStyle = BLUE_400;
-                    ctx.globalAlpha = P.curveAlpha;
-                    ctx.lineWidth = 1.5;
-                    ctx.beginPath();
-                    var numSeg = 60;
-                    for (var i = 0; i <= numSeg; i++) {
-                        var t = i / numSeg;
-                        if (t > drawProgress) break;
-                        var px = ca.x + t * ca.w;
-                        var py = ca.y + ca.h * (1 - curveY(t));
-                        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-                    }
-                    ctx.stroke();
+                // --- Atlas wireframe globe (spinning) ---
+                var rotY = elapsed * 0.2;
+                var cosR = Math.cos(rotY), sinR = Math.sin(rotY);
+                var tiltX = 0.3;
+                var cosT = Math.cos(tiltX), sinT = Math.sin(tiltX);
+                for (var i = 0; i < atlasDots.length; i++) {
+                    var a = atlasDots[i];
+                    var fadeIn = clamp((progress - a.appearAt) / 0.1, 0, 1);
+                    if (fadeIn <= 0) continue;
 
-                    // Leading dot
-                    var leadT = Math.min(drawProgress, 1);
-                    var lx = ca.x + leadT * ca.w;
-                    var ly = ca.y + ca.h * (1 - curveY(leadT));
-                    ctx.fillStyle = BLUE_400;
-                    ctx.globalAlpha = 0.9;
+                    // Rotate around Y axis
+                    var rx = a.sx * cosR - a.sz * sinR;
+                    var rz = a.sx * sinR + a.sz * cosR;
+                    var ry = a.sy;
+                    // Tilt around X axis
+                    var ty = ry * cosT - rz * sinT;
+                    var tz = ry * sinT + rz * cosT;
+
+                    var scale = P.atlasSize;
+                    var px = (ATLAS_ANCHOR.x + rx * scale) * w;
+                    var py = (ATLAS_ANCHOR.y + ty * scale) * h;
+
+                    // Depth-based alpha: front dots brighter
+                    var depth = (tz / GLOBE_R + 1) * 0.5;
+                    var r = P.dotSize * a.sizeMult;
+                    if (a.accent) r *= 1.25;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.globalAlpha = clamp((0.25 + depth * (a.accent ? 0.75 : 0.6)) * fadeIn, 0, 1);
                     ctx.beginPath();
-                    ctx.arc(lx, ly, 4, 0, TAU);
+                    ctx.arc(px, py, r, 0, TAU);
+                    ctx.fill();
+                }
+
+                // --- Domain dots (fixed, chaos calms over time) ---
+                for (var i = 0; i < domainDots.length; i++) {
+                    var d = domainDots[i];
+                    var teamAnchor = TEAM_ANCHORS[d.team];
+
+                    var dr = d.radius * P.domainSize;
+                    var ox = Math.sin(elapsed * d.freqX * P.orbitSpeed + d.phaseX) * dr;
+                    var oy = Math.cos(elapsed * d.freqY * P.orbitSpeed + d.phaseY) * dr;
+                    // Chaos harmonics — add jitter that fades out
+                    var chaosAmt = (1 - calmFactor) * P.chaos * 0.15;
+                    ox += Math.sin(elapsed * d.freqX * 3.1 * P.orbitSpeed + d.phaseY) * dr * chaosAmt;
+                    oy += Math.cos(elapsed * d.freqY * 2.7 * P.orbitSpeed + d.phaseX) * dr * chaosAmt;
+                    ox += Math.sin(elapsed * d.freqY * 5.3 * P.orbitSpeed + d.phaseX * 1.3) * dr * chaosAmt * 0.5;
+                    oy += Math.cos(elapsed * d.freqX * 4.7 * P.orbitSpeed + d.phaseY * 1.7) * dr * chaosAmt * 0.5;
+                    // Lerp toward structured ring position
+                    var tx = d.targetX * P.domainSize;
+                    var ty = d.targetY * P.domainSize;
+                    ox = lerp(ox, tx, calmFactor);
+                    oy = lerp(oy, ty, calmFactor);
+
+                    var px = (teamAnchor.x + ox) * w;
+                    var py = (teamAnchor.y + oy) * h;
+
+                    var r = P.dotSize * d.sizeMult;
+                    var shimmer = Math.sin(elapsed * 1.2 + d.id * 0.7) * 0.08;
+                    var teamC = TEAM_COLORS[d.team];
+
+                    if (d.accent) {
+                        ctx.fillStyle = teamC.bright;
+                        ctx.globalAlpha = clamp(0.7 + shimmer, 0, 1);
+                        r *= 1.25;
+                    } else {
+                        ctx.fillStyle = teamC.dark;
+                        ctx.globalAlpha = clamp(0.55 + shimmer, 0, 1);
+                    }
+                    ctx.beginPath();
+                    ctx.arc(px, py, r, 0, TAU);
+                    ctx.fill();
+                }
+
+                // --- Emissary dots (white, fade in staggered, lerp to rings) ---
+                for (var i = 0; i < emissaryDots.length; i++) {
+                    var e = emissaryDots[i];
+                    var fadeIn = clamp((progress - e.departAt) / 0.1, 0, 1);
+                    if (fadeIn <= 0) continue;
+
+                    var teamAnchor = TEAM_ANCHORS[e.team];
+                    var dr = e.radius * P.domainSize;
+                    var ox = Math.sin(elapsed * e.freqX * P.orbitSpeed + e.phaseX) * dr;
+                    var oy = Math.cos(elapsed * e.freqY * P.orbitSpeed + e.phaseY) * dr;
+                    ox = lerp(ox, e.targetX * P.domainSize, calmFactor);
+                    oy = lerp(oy, e.targetY * P.domainSize, calmFactor);
+
+                    var r = P.dotSize * e.sizeMult;
+                    if (e.accent) r *= 1.2;
+                    var shimmer = syncPulse * 0.15 * calmFactor;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.globalAlpha = clamp((0.7 + shimmer) * fadeIn, 0, 1);
+                    ctx.beginPath();
+                    ctx.arc((teamAnchor.x + ox) * w, (teamAnchor.y + oy) * h, r, 0, TAU);
                     ctx.fill();
                 }
 
@@ -1868,64 +2003,79 @@
 
             // Controls panel
             var slide = document.querySelector('[data-slide="13"]');
-            var controls = document.createElement('div');
-            controls.id = 'cs3-controls';
-            controls.style.cssText = 'display:none;position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,0.85);border:1px solid #333;border-radius:6px;padding:10px 14px;z-index:100;font:11px/1.6 "JetBrains Mono",monospace;color:#999;min-width:180px;';
-            controls.innerHTML =
-                '<label>Speed <input type="range" min="2" max="12" step="0.5" value="' + P.speed + '" data-p="speed" style="width:80px;vertical-align:middle;"> <span class="v">' + P.speed + '</span></label><br>' +
-                '<label>Hold <input type="range" min="0.5" max="5" step="0.5" value="' + P.hold + '" data-p="hold" style="width:80px;vertical-align:middle;"> <span class="v">' + P.hold + '</span></label><br>' +
-                '<label>Dots <input type="range" min="0.8" max="3.5" step="0.1" value="' + P.dotSize + '" data-p="dotSize" style="width:80px;vertical-align:middle;"> <span class="v">' + P.dotSize + '</span></label><br>' +
-                '<label>Fill α <input type="range" min="0.05" max="0.5" step="0.05" value="' + P.fillAlpha + '" data-p="fillAlpha" style="width:80px;vertical-align:middle;"> <span class="v">' + P.fillAlpha + '</span></label><br>' +
-                '<label>Curve α <input type="range" min="0.1" max="1" step="0.05" value="' + P.curveAlpha + '" data-p="curveAlpha" style="width:80px;vertical-align:middle;"> <span class="v">' + P.curveAlpha + '</span></label><br>' +
-                '<button id="cs3-copy" style="margin-top:6px;padding:2px 8px;font:inherit;background:#222;color:#999;border:1px solid #444;border-radius:3px;cursor:pointer;">Copy</button> ' +
-                '<button id="cs3-close" style="margin-top:6px;padding:2px 8px;font:inherit;background:#222;color:#999;border:1px solid #444;border-radius:3px;cursor:pointer;">Close</button>';
-            slide.appendChild(controls);
+            var panel = document.createElement('div');
+            panel.id = 'cs3-controls';
+            panel.innerHTML =
+                '<style>' +
+                '#cs3-controls { position:fixed; bottom:48px; left:50%; transform:translateX(-50%); z-index:300; ' +
+                'background:rgba(20,20,20,0.92); border:1px solid #2a2a2a; border-radius:6px; padding:12px 20px; ' +
+                'display:flex; gap:24px; align-items:center; font-family:var(--font-secondary); font-size:11px; color:#888; }' +
+                '#cs3-controls label { display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:0.06em; }' +
+                '#cs3-controls input[type=range] { width:100px; accent-color:#555; }' +
+                '#cs3-controls .val { color:#aaa; min-width:28px; text-align:right; }' +
+                '#cs3-controls .copy-btn { cursor:pointer; color:#555; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; ' +
+                'border:1px solid #2a2a2a; padding:4px 8px; border-radius:3px; background:none; font-family:var(--font-secondary); }' +
+                '#cs3-controls .copy-btn:hover { color:#aaa; border-color:#555; }' +
+                '#cs3-controls .copy-btn.copied { color:#6a6; border-color:#6a6; }' +
+                '#cs3-controls .close-btn { cursor:pointer; color:#555; margin-left:8px; font-size:14px; }' +
+                '#cs3-controls .close-btn:hover { color:#aaa; }' +
+                '</style>' +
+                '<label>Chaos <input type="range" min="0" max="34" value="' + Math.round(P.chaos * 10) + '" id="cs3-chaos"><span class="val" id="cs3-chaos-val">' + P.chaos + '</span></label>' +
+                '<label>Domain <input type="range" min="0" max="16" value="' + Math.round(P.domainSize * 10) + '" id="cs3-domain"><span class="val" id="cs3-domain-val">' + P.domainSize + '</span></label>' +
+                '<label>Atlas <input type="range" min="0" max="20" value="' + Math.round(P.atlasSize * 10) + '" id="cs3-atlas"><span class="val" id="cs3-atlas-val">' + P.atlasSize + '</span></label>' +
+                '<label>Dots <input type="range" min="0" max="22" value="' + Math.round(P.dotSize * 10) + '" id="cs3-dots"><span class="val" id="cs3-dots-val">' + P.dotSize + '</span></label>' +
+                '<label>Speed <input type="range" min="0" max="88" value="' + Math.round(P.transitTime * 10000) + '" id="cs3-speed"><span class="val" id="cs3-speed-val">' + P.transitTime + '</span></label>' +
+                '<button class="copy-btn" id="cs3-copy">Copy</button>' +
+                '<span class="close-btn" id="cs3-close">✕</span>';
+            panel.style.display = 'none';
+            document.body.appendChild(panel);
 
-            controls.addEventListener('input', function (e) {
-                var inp = e.target;
-                if (!inp.dataset.p) return;
-                P[inp.dataset.p] = parseFloat(inp.value);
-                inp.nextElementSibling.textContent = inp.value;
-                startTime = performance.now();
-            });
-            document.getElementById('cs3-copy').addEventListener('click', function () {
-                var txt = '{ speed: ' + P.speed + ', hold: ' + P.hold + ', dotSize: ' + P.dotSize + ', fillAlpha: ' + P.fillAlpha + ', curveAlpha: ' + P.curveAlpha + ' }';
-                navigator.clipboard.writeText(txt);
-                this.textContent = 'Copied!';
-                var btn = this;
-                setTimeout(function () { btn.textContent = 'Copy'; }, 1200);
-            });
-            document.getElementById('cs3-close').addEventListener('click', function () {
-                controls.style.display = 'none';
-            });
-
-            // Toggle button
             var toggleBtn = document.createElement('button');
             toggleBtn.id = 'cs3-toggle';
-            toggleBtn.textContent = '\u2699';
-            toggleBtn.style.cssText = 'display:none;position:absolute;bottom:12px;right:12px;width:32px;height:32px;background:rgba(0,0,0,0.6);border:1px solid #444;border-radius:4px;color:#999;font-size:16px;cursor:pointer;z-index:99;line-height:1;';
-            slide.appendChild(toggleBtn);
+            toggleBtn.innerHTML = '⚙';
+            toggleBtn.style.cssText = 'position:fixed;bottom:48px;right:48px;z-index:301;background:rgba(20,20,20,0.92);border:1px solid #2a2a2a;border-radius:6px;padding:6px 10px;font-size:16px;cursor:pointer;color:#555;display:none;';
+            document.body.appendChild(toggleBtn);
+
+            var cs3PanelVisible = false;
             toggleBtn.addEventListener('click', function () {
-                controls.style.display = controls.style.display === 'none' ? 'block' : 'none';
-                toggleBtn.style.display = 'none';
+                cs3PanelVisible = !cs3PanelVisible;
+                panel.style.display = cs3PanelVisible ? 'flex' : 'none';
             });
 
-            // Show toggle only on this slide
-            var observer = new MutationObserver(function () {
-                var isActive = slide.getAttribute('data-slide') === document.querySelector('.slide[style*="opacity: 1"], .slide.active, .slide[data-slide]')?.getAttribute('data-slide');
-                // Check via slide container's current index
-                var container = slide.parentElement;
-                var currentSlide = container?.querySelector('.slide[style*="translate(0"]') || container?.querySelector('.slide[style*="translate(0px"]');
-                var onThisSlide = currentSlide === slide;
-                toggleBtn.style.display = onThisSlide && controls.style.display === 'none' ? 'block' : 'none';
-            });
-            // Watch for slide transitions
-            var slideContainer = slide.parentElement;
-            if (slideContainer) {
-                observer.observe(slideContainer, { attributes: true, subtree: true, attributeFilter: ['style'] });
+            function checkSlide() {
+                var onSlide = slide && slide.classList.contains('active');
+                toggleBtn.style.display = onSlide ? 'block' : 'none';
+                if (!onSlide) { panel.style.display = 'none'; cs3PanelVisible = false; }
             }
+            var observer = new MutationObserver(checkSlide);
+            observer.observe(slide, { attributes: true, attributeFilter: ['class'] });
+            checkSlide();
 
-            // Respect reduced motion
+            [
+                ['cs3-chaos', 'chaos', 10, 1],
+                ['cs3-domain', 'domainSize', 10, 1],
+                ['cs3-atlas', 'atlasSize', 10, 1],
+                ['cs3-dots', 'dotSize', 10, 1],
+                ['cs3-speed', 'transitTime', 10000, 4],
+            ].forEach(function (s) {
+                document.getElementById(s[0]).addEventListener('input', function () {
+                    P[s[1]] = this.value / s[2];
+                    document.getElementById(s[0] + '-val').textContent = P[s[1]].toFixed(s[3]);
+                });
+            });
+            document.getElementById('cs3-copy').addEventListener('click', function () {
+                var txt = '{ cycleDuration: ' + P.cycleDuration + ', holdEnd: ' + P.holdEnd + ', dotSize: ' + P.dotSize + ', chaos: ' + P.chaos + ', domainSize: ' + P.domainSize + ', atlasSize: ' + P.atlasSize + ', transitTime: ' + P.transitTime + ' }';
+                navigator.clipboard.writeText(txt);
+                this.textContent = 'Copied!';
+                this.classList.add('copied');
+                var btn = this;
+                setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1200);
+            });
+            document.getElementById('cs3-close').addEventListener('click', function () {
+                cs3PanelVisible = false;
+                panel.style.display = 'none';
+            });
+
             if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
             resize();
